@@ -11,3 +11,6 @@ test:
 
 lint:
 	uv run ruff check backend/src
+	
+ingest:
+	PYTHONPATH=backend/src uv run python backend/scripts/ingest_documents.py
