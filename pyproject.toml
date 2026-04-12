@@ -1,0 +1,53 @@
+[project]
+name = "examiner-coach"
+version = "0.1.0"
+description = "AI-powered OSCE examiner feedback training tool"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "Ramy", email = "your@email.com" }
+]
+keywords = ["OSCE", "medical-education", "feedback", "LLM", "RAG"]
+dependencies = [
+    "fastapi>=0.135.3",
+    "uvicorn[standard]>=0.44.0",
+    "pydantic-settings>=2.13.1",
+    "python-multipart>=0.0.26",
+    "openai>=2.31.0",
+    "httpx>=0.28.1",
+    "chromadb>=1.5.7",
+    "langchain>=1.2.15",
+    "langchain-community>=0.4.1",
+    "langchain-openai>=1.1.12",
+    "python-docx>=1.2.0",
+    "pypdf>=6.10.0",
+    "sqlmodel>=0.0.38",
+    "aiosqlite>=0.22.1",
+    "python-dotenv>=1.2.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "httpx>=0.28.1",
+    "ruff>=0.9.0",
+    "mypy>=1.14.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["backend/tests"]
