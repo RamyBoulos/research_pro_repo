@@ -54,7 +54,7 @@ def parse_document(file_path: Path) -> str:
     url = f"{settings.kisski_base_url}/documents/convert"
 
     with open(file_path, "rb") as f:
-        files = {"file": (file_path.name, f, "multipart/form-data")}
+        files = {"document": (file_path.name, f, "multipart/form-data")}
         headers = {"Authorization": f"Bearer {settings.kisski_api_key}"}
         response = httpx.post(url, files=files, headers=headers, timeout=120)
         response.raise_for_status()
