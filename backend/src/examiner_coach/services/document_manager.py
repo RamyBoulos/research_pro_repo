@@ -1,8 +1,10 @@
 import hashlib
 import json
 import logging
+import re
 from pathlib import Path
 
+from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 from openai import OpenAI
 
 from examiner_coach.config import settings
@@ -64,34 +66,80 @@ def parse_document(file_path: Path) -> str:
     return data.get("markdown") or data.get("text") or ""
 
 
+def clean_parsed_text(text: str) -> str:
+    """
+    Remove obvious parser artifacts while preserving nearby semantic content.
+    This intentionally keeps surrounding paragraphs in case OCR extracted
+    useful captions or figure text.
+    """
+    cleaned_lines = []
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            cleaned_lines.append("")
+            continue
+
+        if re.fullmatch(r"picture-\d+\.(png|jpg|jpeg)", stripped, flags=re.IGNORECASE):
+            continue
+
+        if re.fullmatch(r"https?://\S+", stripped, flags=re.IGNORECASE):
+            continue
+
+        cleaned_lines.append(line)
+
+    return "\n".join(cleaned_lines)
+
+
 # ── Chunking ──────────────────────────────────────────────────
 
-def chunk_text(
-    text: str,
-    chunk_size: int = 512,
-    chunk_overlap: int = 64,
-) -> list[str]:
+def chunk_text(text: str) -> list[str]:
     """
-    Split text into overlapping chunks.
-    Simple sliding window — good enough for our document sizes.
-    chunk_size and chunk_overlap are in characters.
+    Context-aware chunking for Docling markdown output.
+    Step 1: Split on markdown headers to respect document structure.
+    Step 2: Further split large sections on paragraphs/sentences.
     """
-    if not text.strip():
-        return []
+    # Step 1 — split on document structure
+    header_splitter = MarkdownHeaderTextSplitter(
+        headers_to_split_on=[
+            ("#", "h1"),
+            ("##", "h2"),
+            ("###", "h3"),
+        ],
+        strip_headers=False,
+    )
+    header_chunks = header_splitter.split_text(text)
 
-    chunks = []
-    start = 0
-    while start < len(text):
-        end = start + chunk_size
-        chunk = text[start:end].strip()
-        if chunk:
-            chunks.append(chunk)
-        start += chunk_size - chunk_overlap
+    # Step 2 — further split large sections
+    char_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=120,
+        separators=["\n\n", "\n", " ", ""],
+    )
 
-    return chunks
+    final_chunks = []
+    for doc in header_chunks:
+        sub_chunks = char_splitter.split_text(doc.page_content)
+        final_chunks.extend(sub_chunks)
+
+    return [c for c in final_chunks if len(c.strip()) > 100]
 
 
 # ── Embedding ─────────────────────────────────────────────────
+
+def format_passage_for_embedding(text: str) -> str:
+    """
+    Format stored document text for E5-style retrieval models.
+    """
+    return f"passage: {text.strip()}"
+
+
+def format_query_for_embedding(text: str) -> str:
+    """
+    Format user queries for E5-style retrieval models.
+    """
+    return f"query: {text.strip()}"
+
 
 def embed_chunks(chunks: list[str]) -> list[list[float]]:
     """
@@ -99,11 +147,24 @@ def embed_chunks(chunks: list[str]) -> list[list[float]]:
     Returns a list of embedding vectors.
     """
     client = get_kisski_client()
+    formatted_chunks = [format_passage_for_embedding(chunk) for chunk in chunks]
     response = client.embeddings.create(
-        input=chunks,
+        input=formatted_chunks,
         model=settings.kisski_embedding_model,
     )
     return [item.embedding for item in response.data]
+
+
+def embed_query(query: str) -> list[float]:
+    """
+    Embed a user query using the same retrieval convention as stored passages.
+    """
+    client = get_kisski_client()
+    response = client.embeddings.create(
+        input=[format_query_for_embedding(query)],
+        model=settings.kisski_embedding_model,
+    )
+    return response.data[0].embedding
 
 
 # ── Chunk ID generation ───────────────────────────────────────
@@ -134,7 +195,7 @@ def add_document(file_path: Path) -> int:
     logger.info(f"Processing '{filename}'...")
 
     # 1. Parse
-    text = parse_document(file_path)
+    text = clean_parsed_text(parse_document(file_path))
     if not text.strip():
         logger.warning(f"No text extracted from '{filename}'")
         return 0

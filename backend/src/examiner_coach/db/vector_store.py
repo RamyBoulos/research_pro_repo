@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import shutil
 
 import chromadb
 from chromadb.config import Settings as ChromaSettings
@@ -61,20 +62,31 @@ def upsert_chunks(
 
 def query_collection(
     query_embedding: list[float],
-    n_results: int = 5,
-) -> list[str]:
+    n_results: int = 10,
+) -> list[dict]:
     """
     Query the collection with an embedding vector.
-    Returns the top n_results most relevant text chunks.
+    Returns top n_results chunks with text and relevance score.
     """
     collection = get_collection()
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=n_results,
-        include=["documents"],
+        include=["documents", "distances", "metadatas"],
     )
+
     documents = results.get("documents", [[]])[0]
-    return documents
+    distances = results.get("distances", [[]])[0]
+    metadatas = results.get("metadatas", [[]])[0]
+
+    return [
+        {
+            "text": doc,
+            "source": meta.get("source", "unknown"),
+            "relevance": round(1 - dist, 4),  # cosine distance → similarity
+        }
+        for doc, dist, meta in zip(documents, distances, metadatas)
+    ]
 
 
 def delete_chunks_by_source(filename: str) -> None:
@@ -105,3 +117,16 @@ def get_collection_stats() -> dict:
         "collection": COLLECTION_NAME,
         "total_chunks": collection.count(),
     }
+
+
+def reset_vector_store() -> None:
+    """
+    Remove the current Chroma collection data from disk.
+    Use this before re-indexing when the embedding format changes.
+    """
+    db_path = settings.vector_db_dir
+    if db_path.exists():
+        shutil.rmtree(db_path)
+        logger.info(f"Removed vector store directory: {db_path}")
+    else:
+        logger.info(f"Vector store directory does not exist: {db_path}")

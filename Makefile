@@ -1,16 +1,19 @@
-.PHONY: dev sync test lint
+.PHONY: dev sync test lint ingest reset-vectors
 
 dev:
-	PYTHONPATH=backend/src uv run uvicorn examiner_coach.main:app --reload
+	PYTHONPATH=backend/src uvicorn examiner_coach.main:app --reload
 
 sync:
 	uv sync
 
 test:
-	uv run pytest
+	PYTHONPATH=backend/src pytest
 
 lint:
-	uv run ruff check backend/src
-	
+	PYTHONPATH=backend/src ruff check backend/src
+
 ingest:
-	PYTHONPATH=backend/src uv run python backend/scripts/ingest_documents.py
+	PYTHONPATH=backend/src python backend/scripts/ingest_documents.py
+
+reset-vectors:
+	PYTHONPATH=backend/src python backend/scripts/reset_vector_store.py
