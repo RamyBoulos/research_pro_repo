@@ -36,3 +36,6 @@ build/
 
 # Local chunk-debug artifacts
 debug/
+
+# Imported upstream frontend kept for inspection only
+frontend_upstream/
