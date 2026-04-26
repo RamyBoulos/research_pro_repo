@@ -30,13 +30,13 @@ class EvaluationRequest(BaseModel):
 
 
 class CriterionResult(BaseModel):
-    """Result for a single STOP feedback criterion."""
+    """Result for a single feedback quality criterion."""
     criterion_id: str = Field(description="Unique identifier e.g. 'specific_behavior'")
     label: dict[Language, str] = Field(description="Human-readable label in EN and DE")
-    score_percent: float = Field(
-        ge=0.0,
-        le=100.0,
-        description="How strongly the criterion was met, expressed as a percentage",
+    score_percent: int = Field(
+        ge=0,
+        le=100,
+        description="How strongly the criterion was met, expressed as an integer percentage",
     )
     comment: dict[Language, str] = Field(description="LLM explanation in EN and DE")
     quote: dict[Language, str] | None = Field(
@@ -46,10 +46,10 @@ class CriterionResult(BaseModel):
 
 
 class EvaluationResult(BaseModel):
-    """Full STOP radar evaluation returned to the frontend."""
+    """Full feedback quality evaluation returned to the frontend."""
     transcript: str
     duration_seconds: float
-    overall_score: float = Field(ge=0.0, le=100.0, description="Percentage 0-100")
+    overall_score: int = Field(ge=0, le=100, description="Integer percentage 0-100")
     criteria_met: int
     total_criteria: int
     criteria: list[CriterionResult]
@@ -59,13 +59,13 @@ class EvaluationResult(BaseModel):
 
 
 class ResolvedCriterionResult(BaseModel):
-    """Single-language view of a STOP criterion for display or export."""
+    """Single-language view of a feedback quality criterion for display or export."""
     criterion_id: str
     label: str
-    score_percent: float = Field(
-        ge=0.0,
-        le=100.0,
-        description="How strongly the criterion was met, expressed as a percentage",
+    score_percent: int = Field(
+        ge=0,
+        le=100,
+        description="How strongly the criterion was met, expressed as an integer percentage",
     )
     comment: str
     quote: str | None = None
@@ -76,7 +76,7 @@ class ResolvedEvaluationResult(BaseModel):
     output_language: Language
     transcript: str
     duration_seconds: float
-    overall_score: float = Field(ge=0.0, le=100.0, description="Percentage 0-100")
+    overall_score: int = Field(ge=0, le=100, description="Integer percentage 0-100")
     criteria_met: int
     total_criteria: int
     criteria: list[ResolvedCriterionResult]
