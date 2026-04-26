@@ -10,12 +10,6 @@ class Language(str, Enum):
     DE = "de"
 
 
-class CriterionStatus(str, Enum):
-    MET = "yes"
-    PARTIAL = "partial"
-    NOT_MET = "no"
-
-
 # ── Audio / Transcription ─────────────────────────────────────
 
 class TranscriptionResponse(BaseModel):
@@ -25,11 +19,25 @@ class TranscriptionResponse(BaseModel):
 
 # ── Evaluation ───────────────────────────────────────────────
 
+class EvaluationRequest(BaseModel):
+    """Input payload for evaluating an examiner feedback transcript."""
+    transcript: str = Field(min_length=1, description="Transcript text to evaluate")
+    duration_seconds: float = Field(ge=0.0, description="Audio duration in seconds")
+    output_language: Language = Field(
+        default=Language.EN,
+        description="Preferred language for displaying the result",
+    )
+
+
 class CriterionResult(BaseModel):
     """Result for a single STOP feedback criterion."""
     criterion_id: str = Field(description="Unique identifier e.g. 'specific_behavior'")
     label: dict[Language, str] = Field(description="Human-readable label in EN and DE")
-    status: CriterionStatus
+    score_percent: float = Field(
+        ge=0.0,
+        le=100.0,
+        description="How strongly the criterion was met, expressed as a percentage",
+    )
     comment: dict[Language, str] = Field(description="LLM explanation in EN and DE")
     quote: dict[Language, str] | None = Field(
         default=None,
@@ -48,6 +56,31 @@ class EvaluationResult(BaseModel):
     key_suggestion: dict[Language, str] = Field(
         description="Single most important improvement tip in EN and DE"
     )
+
+
+class ResolvedCriterionResult(BaseModel):
+    """Single-language view of a STOP criterion for display or export."""
+    criterion_id: str
+    label: str
+    score_percent: float = Field(
+        ge=0.0,
+        le=100.0,
+        description="How strongly the criterion was met, expressed as a percentage",
+    )
+    comment: str
+    quote: str | None = None
+
+
+class ResolvedEvaluationResult(BaseModel):
+    """Single-language view of an evaluation resolved from the bilingual result."""
+    output_language: Language
+    transcript: str
+    duration_seconds: float
+    overall_score: float = Field(ge=0.0, le=100.0, description="Percentage 0-100")
+    criteria_met: int
+    total_criteria: int
+    criteria: list[ResolvedCriterionResult]
+    key_suggestion: str
 
 
 # ── Documents ────────────────────────────────────────────────
