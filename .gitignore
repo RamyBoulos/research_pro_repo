@@ -37,5 +37,8 @@ build/
 # Local chunk-debug artifacts
 debug/
 
-# Imported upstream frontend kept for inspection only
+# Archived placeholder frontend kept only for reference
+frontend_old/
+
+# Stale old frontend path / local Next.js cache after rename
 frontend_upstream/
