@@ -27,7 +27,7 @@ def resolve_criterion_result(
         criterion_id=criterion.criterion_id,
         label=get_text(criterion.label, lang),
         score_percent=criterion.score_percent,
-        comment=get_text(criterion.comment, lang),
+        suggestion=get_text(criterion.suggestion, lang),
         quote=get_text(criterion.quote, lang) if criterion.quote else None,
     )
 
@@ -46,6 +46,7 @@ def resolve_evaluation_result(
         transcript=evaluation.transcript,
         duration_seconds=evaluation.duration_seconds,
         overall_score=evaluation.overall_score,
+        summary=get_text(evaluation.summary, lang),
         criteria_met=evaluation.criteria_met,
         total_criteria=evaluation.total_criteria,
         criteria=[

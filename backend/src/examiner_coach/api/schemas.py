@@ -38,7 +38,9 @@ class CriterionResult(BaseModel):
         le=100,
         description="How strongly the criterion was met, expressed as an integer percentage",
     )
-    comment: dict[Language, str] = Field(description="LLM explanation in EN and DE")
+    suggestion: dict[Language, str] = Field(
+        description="Very short one-sentence improvement suggestion in EN and DE"
+    )
     quote: dict[Language, str] | None = Field(
         default=None,
         description="Relevant quote from transcript, if applicable"
@@ -50,6 +52,9 @@ class EvaluationResult(BaseModel):
     transcript: str
     duration_seconds: float
     overall_score: int = Field(ge=0, le=100, description="Integer percentage 0-100")
+    summary: dict[Language, str] = Field(
+        description="Short overall summary of the feedback quality in EN and DE"
+    )
     criteria_met: int
     total_criteria: int
     criteria: list[CriterionResult]
@@ -67,7 +72,7 @@ class ResolvedCriterionResult(BaseModel):
         le=100,
         description="How strongly the criterion was met, expressed as an integer percentage",
     )
-    comment: str
+    suggestion: str
     quote: str | None = None
 
 
@@ -77,6 +82,7 @@ class ResolvedEvaluationResult(BaseModel):
     transcript: str
     duration_seconds: float
     overall_score: int = Field(ge=0, le=100, description="Integer percentage 0-100")
+    summary: str
     criteria_met: int
     total_criteria: int
     criteria: list[ResolvedCriterionResult]

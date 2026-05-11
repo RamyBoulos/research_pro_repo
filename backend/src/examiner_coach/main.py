@@ -39,11 +39,11 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix="/api", tags=["health"])
 
     # These will be uncommented as we build each service:
-    # from examiner_coach.api.routes import audio
-    # app.include_router(audio.router, prefix="/api", tags=["audio"])
+    from examiner_coach.api.routes import audio
+    app.include_router(audio.router, prefix="/api", tags=["audio"])
 
-    # from examiner_coach.api.routes import evaluation
-    # app.include_router(evaluation.router, prefix="/api", tags=["evaluation"])
+    from examiner_coach.api.routes import evaluation
+    app.include_router(evaluation.router, prefix="/api", tags=["evaluation"])
 
     # from examiner_coach.api.routes import documents
     # app.include_router(documents.router, prefix="/api", tags=["documents"])
