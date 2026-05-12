@@ -6,7 +6,6 @@ import type { ResolvedEvaluationResult } from "@/types/evaluation";
 export interface FeedbackState {
   status: "idle" | "uploading" | "processing" | "done" | "error";
   transcript?: string | null;
-  feedback?: string | null;
   evaluation?: ResolvedEvaluationResult | null;
   errorMessage?: string | null;
   info?: string | null;
@@ -36,9 +35,6 @@ export default function FeedbackPanel({ state }: FeedbackPanelProps) {
       {state.status === "done" ? (
         <div className="stack">
           {state.evaluation ? <StructuredEvaluation evaluation={state.evaluation} /> : null}
-          {!state.evaluation && state.feedback ? (
-            <div style={{ whiteSpace: "pre-wrap" }}>{state.feedback}</div>
-          ) : null}
           <button className="btn secondary" onClick={() => setShowTranscript((prev) => !prev)}>
             {showTranscript ? "Transcript ausblenden" : "Transcript anzeigen"}
           </button>

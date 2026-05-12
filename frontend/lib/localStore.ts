@@ -24,7 +24,6 @@ export interface SubmissionRecord {
   status: "uploaded" | "processing" | "done" | "error";
   transcript?: string | null;
   evaluation?: ResolvedEvaluationResult | null;
-  feedback?: string | null;
   error_message?: string | null;
   audio_path: string;
   created_at: string;

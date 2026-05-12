@@ -98,7 +98,6 @@ export default function AppShell({ user }: AppShellProps) {
         setFeedback({
           status: "done",
           transcript: submission.transcript,
-          feedback: submission.feedback,
           evaluation: submission.evaluation
         });
         loadStatus();

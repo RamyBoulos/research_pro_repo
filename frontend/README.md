@@ -37,8 +37,6 @@ Wenn die Verarbeitung ueber den Python-Backenddienst laufen soll, muss dort z.B.
 FASTAPI_BASE_URL=http://127.0.0.1:8000
 ```
 
-Die alten Variablen `OPENAI_API_KEY` und `EVAL_PROMPT` sind nur noch fuer den frueheren direkten Modellpfad relevant.
-
 ### 3) Installation & Start
 ```bash
 npm install
@@ -58,5 +56,5 @@ npm run dev
 4. Feedback erscheint, Transcript optional einblendbar.
 
 ## Sicherheitsannahmen (konservativ)
-- OpenAI Key bleibt serverseitig und wird nie an den Client ausgeliefert.
+- Der FastAPI-Backenddienst verarbeitet Transkription und Evaluation serverseitig.
 - Zugriffsschutz basiert auf lokal gepflegten Zugangscodes in `data/users.json`.

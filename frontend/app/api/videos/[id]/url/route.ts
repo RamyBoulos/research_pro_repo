@@ -4,16 +4,17 @@ import { getSessionToken } from "@/lib/session";
 import { getUserForSession } from "@/lib/auth";
 
 interface Params {
-  params: { id: string };
+  params: Promise<{ id: string }> | { id: string };
 }
 
 export async function GET(_: Request, { params }: Params) {
+  const { id } = await params;
   const user = await getUserForSession(await getSessionToken());
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const videos = await getVideos();
-  const video = videos.find((item) => item.id === params.id);
+  const video = videos.find((item) => item.id === id);
 
   if (!video) {
     return NextResponse.json({ error: "Video not found" }, { status: 404 });
