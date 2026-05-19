@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     # ── Models ───────────────────────────────────────────────
     kisski_llm_model: str = "llama-3.3-70b-instruct"
+    kisski_judge_model: str = "gpt-oss-120b"
     kisski_embedding_model: str = "multilingual-e5-large-instruct"
     kisski_voice_model: str = "whisper-large-v2"
 

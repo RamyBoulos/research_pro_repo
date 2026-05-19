@@ -84,6 +84,7 @@ def query_collection(
             "text": doc,
             "source": meta.get("source", "unknown"),
             "relevance": round(1 - dist, 4),  # cosine distance → similarity
+            "metadata": meta or {},
         }
         for doc, dist, meta in zip(documents, distances, metadatas)
     ]

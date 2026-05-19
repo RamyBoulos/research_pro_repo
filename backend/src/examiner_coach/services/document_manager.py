@@ -15,6 +15,29 @@ from examiner_coach.db.vector_store import (
 
 logger = logging.getLogger(__name__)
 
+LOW_VALUE_SECTION_PATTERNS = (
+    "references",
+    "literatur",
+    "bibliography",
+    "further reading",
+    "appendix",
+    "appendices",
+)
+
+GUIDANCE_SECTION_PATTERNS = (
+    "tip",
+    "tips",
+    "feedback",
+    "recommendation",
+    "recommendations",
+    "practical example",
+    "practical examples",
+    "rules",
+    "guidance",
+    "how to do it well",
+    "allgemeines feedbackregeln",
+)
+
 # ── Kisski client ─────────────────────────────────────────────
 
 def get_kisski_client() -> OpenAI:
@@ -99,6 +122,60 @@ def chunk_text(text: str) -> list[str]:
     Step 1: Split on markdown headers to respect document structure.
     Step 2: Further split large sections on paragraphs/sentences.
     """
+    return [chunk["text"] for chunk in chunk_document(text)]
+
+
+def _build_section_label(metadata: dict) -> str:
+    parts = [str(metadata.get(key, "")).strip() for key in ("h1", "h2", "h3")]
+    return " > ".join(part for part in parts if part)
+
+
+def _infer_chunk_type(section_label: str, text: str) -> str:
+    lowered_label = section_label.lower()
+    lowered_text = text.lower()
+
+    if any(pattern in lowered_label for pattern in LOW_VALUE_SECTION_PATTERNS):
+        return "references"
+    if lowered_text.startswith("## references") or lowered_text.startswith("## literatur"):
+        return "references"
+    if lowered_text.startswith("## abstract"):
+        return "abstract"
+    if lowered_text.startswith("## conclusions") or lowered_text.startswith("## conclusion"):
+        return "conclusion"
+    if any(pattern in lowered_label for pattern in GUIDANCE_SECTION_PATTERNS):
+        return "guidance"
+    if "doi:" in lowered_text and lowered_text.count("\n- ") >= 2:
+        return "references"
+    return "content"
+
+
+def _is_low_value_chunk(text: str, chunk_type: str) -> bool:
+    lowered = text.lower()
+
+    if chunk_type == "references":
+        return True
+
+    citation_markers = lowered.count("doi:") + lowered.count(" et al.")
+    bullet_markers = lowered.count("\n- ")
+    if citation_markers >= 2:
+        return True
+    if bullet_markers >= 4 and "recommend" not in lowered and "feedback" not in lowered:
+        return True
+
+    non_empty_lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if non_empty_lines:
+        short_lines = sum(1 for line in non_empty_lines if len(line) < 120)
+        if short_lines / len(non_empty_lines) > 0.8 and citation_markers >= 1:
+            return True
+
+    return False
+
+
+def chunk_document(text: str) -> list[dict]:
+    """
+    Return chunk payloads with lightweight structural metadata so retrieval can
+    prefer practical guidance over references and bibliography sections.
+    """
     # Step 1 — split on document structure
     header_splitter = MarkdownHeaderTextSplitter(
         headers_to_split_on=[
@@ -117,12 +194,30 @@ def chunk_text(text: str) -> list[str]:
         separators=["\n\n", "\n", " ", ""],
     )
 
-    final_chunks = []
+    final_chunks: list[dict] = []
     for doc in header_chunks:
+        metadata = doc.metadata or {}
+        section_label = _build_section_label(metadata)
         sub_chunks = char_splitter.split_text(doc.page_content)
-        final_chunks.extend(sub_chunks)
+        for sub_chunk in sub_chunks:
+            cleaned_chunk = sub_chunk.strip()
+            if len(cleaned_chunk) <= 100:
+                continue
 
-    return [c for c in final_chunks if len(c.strip()) > 100]
+            chunk_type = _infer_chunk_type(section_label, cleaned_chunk)
+            final_chunks.append(
+                {
+                    "text": cleaned_chunk,
+                    "h1": metadata.get("h1"),
+                    "h2": metadata.get("h2"),
+                    "h3": metadata.get("h3"),
+                    "section_label": section_label or None,
+                    "chunk_type": chunk_type,
+                    "is_low_value": _is_low_value_chunk(cleaned_chunk, chunk_type),
+                }
+            )
+
+    return final_chunks
 
 
 # ── Embedding ─────────────────────────────────────────────────
@@ -201,11 +296,12 @@ def add_document(file_path: Path) -> int:
         return 0
 
     # 2. Chunk
-    chunks = chunk_text(text)
-    if not chunks:
+    chunk_payloads = chunk_document(text)
+    if not chunk_payloads:
         logger.warning(f"No chunks generated from '{filename}'")
         return 0
 
+    chunks = [payload["text"] for payload in chunk_payloads]
     logger.info(f"  → {len(chunks)} chunks")
 
     # 3. Embed
@@ -214,7 +310,19 @@ def add_document(file_path: Path) -> int:
 
     # 4. Store
     chunk_ids = [make_chunk_id(filename, i, c) for i, c in enumerate(chunks)]
-    metadatas = [{"source": filename, "chunk_index": i} for i in range(len(chunks))]
+    metadatas = [
+        {
+            "source": filename,
+            "chunk_index": i,
+            "h1": payload.get("h1"),
+            "h2": payload.get("h2"),
+            "h3": payload.get("h3"),
+            "section_label": payload.get("section_label"),
+            "chunk_type": payload.get("chunk_type", "content"),
+            "is_low_value": bool(payload.get("is_low_value", False)),
+        }
+        for i, payload in enumerate(chunk_payloads)
+    ]
 
     upsert_chunks(
         chunk_ids=chunk_ids,

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass
+from typing import Literal
 
 from examiner_coach.api.schemas import CriterionResult, EvaluationResult, Language
 from examiner_coach.config import settings
@@ -21,6 +23,60 @@ from examiner_coach.services.evaluation_prompt import (
 )
 
 logger = logging.getLogger(__name__)
+
+CRITERION_AWARE_RETRIEVAL_HINT = (
+    "Find educational guidance about evaluating the quality of OSCE examiner feedback. "
+    "Prioritize evidence about specific observed behavior, timely and contextual feedback, "
+    "objective and non-evaluative tone, explicit strengths, changeable improvement areas, "
+    "and concrete improvement plans or suggestions for change."
+)
+
+GUIDANCE_BONUS_PATTERNS = (
+    "specific",
+    "specific examples",
+    "direct observation",
+    "timely",
+    "contextual",
+    "neutral wording",
+    "objective",
+    "changeable",
+    "behaviours that can be changed",
+    "suggestions for change",
+    "next steps",
+    "action plan",
+    "konkret",
+    "beobacht",
+    "zeitnah",
+    "kontext",
+    "objektiv",
+    "veraenderbar",
+    "veränderbar",
+    "vorschlag",
+    "naechste schritte",
+    "nächste schritte",
+)
+
+LOW_VALUE_TEXT_PATTERNS = (
+    "## references",
+    "## literatur",
+    "doi:",
+    "urn:",
+    "bibliography",
+    "video-feedback",
+)
+
+GENERIC_OVERVIEW_SECTION_PATTERNS = (
+    "feedback: why it is important",
+    "why it is important",
+    "conclusions",
+    "abstract",
+    "discussion",
+    "introduction",
+    "getting beyond 'good job'",
+    "make feedback part of institutional culture",
+    "practice points",
+    "modelle zur wirkung von feedback",
+)
 
 
 @dataclass(slots=True)
@@ -44,10 +100,24 @@ class RetrievalConfig:
     retrieval and half from the hypothetical query.
     """
 
+    retrieval_mode: Literal["none", "direct", "hyde"] = "direct"
     candidate_pool_size: int = 20
     final_k: int = 8
     use_hyde: bool = False
     hyde_max_tokens: int = 300
+    normalize_to_english: bool = True
+    criterion_aware_query: bool = True
+    enable_quality_reranking: bool = True
+
+
+def resolve_retrieval_mode(config: RetrievalConfig) -> Literal["none", "direct", "hyde"]:
+    """
+    Resolve the effective retrieval mode while keeping `use_hyde` backward
+    compatible for older callers.
+    """
+    if config.use_hyde and config.retrieval_mode == "direct":
+        return "hyde"
+    return config.retrieval_mode
 
 
 def build_retrieval_query(retrieval_input: RetrievalInput) -> str:
@@ -62,6 +132,15 @@ def build_retrieval_query(retrieval_input: RetrievalInput) -> str:
     if user_query:
         return f"{user_query}\n\nTranscript:\n{transcript}"
     return transcript
+
+
+def build_criterion_aware_query(retrieval_input: RetrievalInput) -> str:
+    """
+    Add task-specific hints so retrieval targets feedback-quality guidance
+    instead of only semantic overlap with transcript wording.
+    """
+    base_query = build_retrieval_query(retrieval_input)
+    return f"{CRITERION_AWARE_RETRIEVAL_HINT}\n\nTranscript to ground the search:\n{base_query}"
 
 
 def generate_hypothetical_document(query: str, max_tokens: int) -> str:
@@ -201,6 +280,7 @@ def deduplicate_candidates(candidates: list[dict]) -> list[dict]:
                 "source": candidate["source"],
                 "relevance": candidate["relevance"],
                 "retrieval_methods": [candidate["retrieval_method"]],
+                "metadata": candidate.get("metadata") or {},
             }
             continue
 
@@ -208,8 +288,110 @@ def deduplicate_candidates(candidates: list[dict]) -> list[dict]:
         current["relevance"] = max(current["relevance"], candidate["relevance"])
         if candidate["retrieval_method"] not in current["retrieval_methods"]:
             current["retrieval_methods"].append(candidate["retrieval_method"])
+        if not current.get("metadata") and candidate.get("metadata"):
+            current["metadata"] = candidate["metadata"]
 
     return sorted(deduplicated.values(), key=lambda item: item["relevance"], reverse=True)
+
+
+def _normalize_text_for_matching(text: str) -> str:
+    return (
+        text.lower()
+        .replace("ä", "ae")
+        .replace("ö", "oe")
+        .replace("ü", "ue")
+        .replace("ß", "ss")
+    )
+
+
+def _count_guidance_hits(text: str) -> int:
+    normalized = _normalize_text_for_matching(text)
+    return sum(1 for pattern in GUIDANCE_BONUS_PATTERNS if pattern in normalized)
+
+
+def _looks_like_low_value_chunk(candidate: dict) -> bool:
+    metadata = candidate.get("metadata") or {}
+    if metadata.get("is_low_value") is True:
+        return True
+
+    chunk_type = str(metadata.get("chunk_type", "")).lower()
+    if chunk_type == "references":
+        return True
+
+    normalized = _normalize_text_for_matching(candidate.get("text", ""))
+    if any(pattern in normalized for pattern in LOW_VALUE_TEXT_PATTERNS):
+        return True
+
+    non_empty_lines = [line.strip() for line in candidate.get("text", "").splitlines() if line.strip()]
+    if not non_empty_lines:
+        return True
+
+    short_lines = sum(1 for line in non_empty_lines if len(line) < 120)
+    doi_count = normalized.count("doi:")
+    bullet_count = len(re.findall(r"(?m)^\s*-\s", candidate.get("text", "")))
+    return doi_count >= 2 or (short_lines / len(non_empty_lines) > 0.8 and bullet_count >= 3)
+
+
+def _score_candidate_quality(candidate: dict) -> tuple[float, list[str]]:
+    metadata = candidate.get("metadata") or {}
+    text = candidate.get("text", "")
+    normalized = _normalize_text_for_matching(text)
+    score = float(candidate.get("relevance", 0.0))
+    reasons: list[str] = []
+
+    section_label = str(metadata.get("section_label") or "")
+    if section_label:
+        guidance_hits = _count_guidance_hits(section_label)
+        if guidance_hits:
+            score += min(0.03 * guidance_hits, 0.12)
+            reasons.append("guidance-section")
+
+    content_hits = _count_guidance_hits(text)
+    if content_hits:
+        score += min(0.025 * content_hits, 0.15)
+        reasons.append("guidance-keywords")
+
+    chunk_type = str(metadata.get("chunk_type", "")).lower()
+    if chunk_type == "guidance":
+        score += 0.08
+        reasons.append("guidance-type")
+    elif chunk_type == "conclusion":
+        score -= 0.05
+        reasons.append("generic-conclusion")
+    elif chunk_type == "abstract":
+        score -= 0.03
+        reasons.append("abstract")
+
+    if "direct observation" in normalized or "beobacht" in normalized:
+        score += 0.05
+        reasons.append("direct-observation")
+    if (
+        "suggestions for change" in normalized
+        or "next steps" in normalized
+        or "naechste schritte" in normalized
+    ):
+        score += 0.05
+        reasons.append("actionable-guidance")
+
+    section_label_normalized = _normalize_text_for_matching(section_label)
+    if any(pattern in section_label_normalized for pattern in GENERIC_OVERVIEW_SECTION_PATTERNS):
+        score -= 0.08
+        reasons.append("generic-section")
+
+    if (
+        "why it is important" in normalized
+        or normalized.startswith("## conclusions")
+        or normalized.startswith("## abstract")
+        or "institutional culture" in normalized
+    ):
+        score -= 0.06
+        reasons.append("generic-content")
+
+    if _looks_like_low_value_chunk(candidate):
+        score -= 0.25
+        reasons.append("low-value")
+
+    return round(score, 4), reasons
 
 
 def retrieve_candidates(
@@ -222,9 +404,17 @@ def retrieve_candidates(
     the other half via the hypothetical document query.
     """
     config = config or RetrievalConfig()
-    base_query = build_retrieval_query(retrieval_input)
+    retrieval_mode = resolve_retrieval_mode(config)
+    base_query = (
+        build_criterion_aware_query(retrieval_input)
+        if config.criterion_aware_query
+        else build_retrieval_query(retrieval_input)
+    )
 
-    if not config.use_hyde:
+    if retrieval_mode == "none":
+        return []
+
+    if retrieval_mode == "direct":
         return retrieve_direct(base_query, config.candidate_pool_size)
 
     direct_k = max(1, config.candidate_pool_size // 2)
@@ -241,12 +431,26 @@ def retrieve_candidates(
 
 def select_final_context(
     candidates: list[dict],
-    final_k: int,
+    config: RetrievalConfig,
 ) -> list[dict]:
     """
-    Select the final top-ranked retrieval results.
+    Select the final retrieval results after optional quality reranking.
     """
-    return sorted(candidates, key=lambda item: item["relevance"], reverse=True)[:final_k]
+    if not config.enable_quality_reranking:
+        return sorted(candidates, key=lambda item: item["relevance"], reverse=True)[: config.final_k]
+
+    rescored_candidates: list[dict] = []
+    for candidate in candidates:
+        reranked_score, rerank_reasons = _score_candidate_quality(candidate)
+        updated = dict(candidate)
+        updated["raw_relevance"] = candidate.get("relevance", 0.0)
+        updated["relevance"] = reranked_score
+        updated["rerank_reasons"] = rerank_reasons
+        rescored_candidates.append(updated)
+
+    filtered = [candidate for candidate in rescored_candidates if not _looks_like_low_value_chunk(candidate)]
+    final_pool = filtered or rescored_candidates
+    return sorted(final_pool, key=lambda item: item["relevance"], reverse=True)[: config.final_k]
 
 
 def build_rag_context(
@@ -257,14 +461,37 @@ def build_rag_context(
     Build a full RAG context package for downstream evaluation.
     """
     config = config or RetrievalConfig()
+    retrieval_mode = resolve_retrieval_mode(config)
+
+    if retrieval_mode == "none":
+        return {
+            "query": (
+                build_criterion_aware_query(retrieval_input)
+                if config.criterion_aware_query
+                else build_retrieval_query(retrieval_input)
+            ),
+            "results": [],
+            "context_text": "No relevant evidence retrieved from the knowledge base.",
+            "used_hyde": False,
+            "retrieval_mode": "none",
+            "candidate_pool_size": 0,
+            "final_k": 0,
+        }
+
     candidates = retrieve_candidates(retrieval_input, config=config)
-    final_results = select_final_context(candidates, final_k=config.final_k)
+    final_results = select_final_context(candidates, config=config)
+    query = (
+        build_criterion_aware_query(retrieval_input)
+        if config.criterion_aware_query
+        else build_retrieval_query(retrieval_input)
+    )
 
     return {
-        "query": build_retrieval_query(retrieval_input),
+        "query": query,
         "results": final_results,
         "context_text": format_retrieved_context(final_results),
-        "used_hyde": config.use_hyde,
+        "used_hyde": retrieval_mode == "hyde",
+        "retrieval_mode": retrieval_mode,
         "candidate_pool_size": config.candidate_pool_size,
         "final_k": config.final_k,
     }
@@ -437,22 +664,31 @@ def _parse_llm_response(
     )
 
 
-def evaluate_transcript(
+def evaluate_transcript_with_details(
     transcript: str,
     duration_seconds: float,
     config: RetrievalConfig | None = None,
-) -> EvaluationResult:
+) -> dict:
     """
-    Full RAG evaluation pipeline: retrieve, prompt, call LLM, parse, return.
+    Full evaluation pipeline with detailed intermediate artifacts for
+    experiments and judging.
     """
     transcript = transcript.strip()
     if not transcript:
         raise ValueError("Transcript must not be empty.")
 
     config = config or RetrievalConfig()
-    normalized_transcript = translate_transcript_to_english(transcript)
+    normalized_transcript = (
+        translate_transcript_to_english(transcript)
+        if config.normalize_to_english
+        else transcript
+    )
 
-    logger.info("Starting transcript evaluation (HyDE=%s)", config.use_hyde)
+    logger.info(
+        "Starting transcript evaluation (mode=%s, normalize=%s)",
+        resolve_retrieval_mode(config),
+        config.normalize_to_english,
+    )
     rag_context = build_rag_context(
         RetrievalInput(transcript=normalized_transcript),
         config=config,
@@ -493,4 +729,35 @@ def evaluate_transcript(
         result.criteria_met,
         result.total_criteria,
     )
-    return result
+    return {
+        "result": result,
+        "normalized_transcript": normalized_transcript,
+        "rag_context": rag_context,
+        "raw_output": raw_output,
+        "messages": messages,
+        "retrieval_config": {
+            "retrieval_mode": resolve_retrieval_mode(config),
+            "candidate_pool_size": config.candidate_pool_size,
+            "final_k": config.final_k,
+            "hyde_max_tokens": config.hyde_max_tokens,
+            "normalize_to_english": config.normalize_to_english,
+            "criterion_aware_query": config.criterion_aware_query,
+            "enable_quality_reranking": config.enable_quality_reranking,
+        },
+    }
+
+
+def evaluate_transcript(
+    transcript: str,
+    duration_seconds: float,
+    config: RetrievalConfig | None = None,
+) -> EvaluationResult:
+    """
+    Production-facing wrapper that returns only the parsed evaluation result.
+    """
+    details = evaluate_transcript_with_details(
+        transcript=transcript,
+        duration_seconds=duration_seconds,
+        config=config,
+    )
+    return details["result"]

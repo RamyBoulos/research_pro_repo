@@ -1,0 +1,523 @@
+[
+  {
+    "id": "en_weak_comm_short_01",
+    "language": "en",
+    "duration_seconds": 42.0,
+    "duration_bucket": "short",
+    "quality_band": "weak",
+    "notes": "Communication-focused case with vague praise, vague criticism, and no actionable plan.",
+    "transcript": "Thank you for your performance. Overall it was good and you were friendly with the patient. You still need to improve a few things and be a bit more careful next time. Some parts were missing and you should think more about what is important in this station. Keep practicing and you will do better.",
+    "gold_expected": {
+      "overall_score_band": [20, 40],
+      "criteria_expected": {
+        "specific_behavior": [10, 30],
+        "timely_contextual": [20, 40],
+        "objective_tone": [50, 70],
+        "strength_mentioned": [10, 30],
+        "improvement_area": [20, 40],
+        "improvement_plan": [0, 20]
+      },
+      "expected_strengths": [],
+      "expected_weaknesses": [
+        "Praise is generic rather than behavior-based",
+        "Improvement advice is not tied to a concrete observed action",
+        "No clear next step is offered"
+      ],
+      "expected_key_suggestion": [
+        "Name one specific observed communication behavior and give one concrete improvement step"
+      ],
+      "forbidden_claims": [
+        "Do not claim that a concrete improvement plan was discussed",
+        "Do not claim that a specific observed strength was clearly identified"
+      ]
+    }
+  },
+  {
+    "id": "de_weak_proc_short_01",
+    "language": "de",
+    "duration_seconds": 47.0,
+    "duration_bucket": "short",
+    "quality_band": "weak",
+    "notes": "Procedure-focused case with station mention but largely unspecific praise and advice.",
+    "transcript": "Danke, das war insgesamt ganz ordentlich. Bei der praktischen Aufgabe haben Sie sich Mühe gegeben, aber es gibt noch einige Dinge, auf die Sie mehr achten sollten. Sie müssen einfach strukturierter sein und insgesamt sicherer arbeiten. Sonst war es okay, machen Sie einfach weiter so und üben Sie noch etwas mehr.",
+    "gold_expected": {
+      "overall_score_band": [25, 45],
+      "criteria_expected": {
+        "specific_behavior": [10, 30],
+        "timely_contextual": [30, 50],
+        "objective_tone": [50, 70],
+        "strength_mentioned": [10, 30],
+        "improvement_area": [20, 40],
+        "improvement_plan": [0, 20]
+      },
+      "expected_strengths": [],
+      "expected_weaknesses": [
+        "Observed behavior is not described concretely",
+        "Advice such as 'strukturierter' remains too general",
+        "No immediate action plan is given"
+      ],
+      "expected_key_suggestion": [
+        "Benennen Sie einen konkreten praktischen Schritt und formulieren Sie daraus eine konkrete Empfehlung"
+      ],
+      "forbidden_claims": [
+        "Do not infer adherence to a specific procedural standard that is not mentioned",
+        "Do not claim there is a detailed practice strategy"
+      ]
+    }
+  },
+  {
+    "id": "en_weak_proc_medium_01",
+    "language": "en",
+    "duration_seconds": 74.0,
+    "duration_bucket": "medium",
+    "quality_band": "weak",
+    "notes": "Procedure case with some station relevance but mostly evaluative language and no clear examples.",
+    "transcript": "You handled the procedure fairly well and I could see that you were trying to be efficient. There are still some important aspects that you need to keep in mind during these stations, because a few things were not ideal. I would like you to be more systematic and more professional in your approach next time. Apart from that, it was a reasonable attempt.",
+    "gold_expected": {
+      "overall_score_band": [30, 50],
+      "criteria_expected": {
+        "specific_behavior": [20, 40],
+        "timely_contextual": [30, 50],
+        "objective_tone": [40, 60],
+        "strength_mentioned": [20, 40],
+        "improvement_area": [20, 40],
+        "improvement_plan": [10, 30]
+      },
+      "expected_strengths": [],
+      "expected_weaknesses": [
+        "Statements remain broad and evaluative",
+        "Improvement advice is generic",
+        "No specific procedural step is named"
+      ],
+      "expected_key_suggestion": [
+        "Replace global judgments with one concrete observed procedural example and one concrete next step"
+      ],
+      "forbidden_claims": [
+        "Do not claim a clearly specific strength was named",
+        "Do not score objective tone as exemplary"
+      ]
+    }
+  },
+  {
+    "id": "de_weak_comm_long_01",
+    "language": "de",
+    "duration_seconds": 126.0,
+    "duration_bucket": "long",
+    "quality_band": "weak",
+    "notes": "Long communication case showing that duration alone does not make feedback good.",
+    "transcript": "Vielen Dank, das war wirklich eine gute Leistung und ich glaube, Sie sind auf einem sehr guten Weg. Man merkt, dass Sie grundsätzlich ein gutes Gefühl für Patientengespräche haben. An manchen Stellen war es aber noch nicht ganz optimal und da sollten Sie einfach noch ein wenig genauer sein. Insgesamt bin ich aber zufrieden und denke, dass Sie mit weiterer Übung noch besser werden.",
+    "gold_expected": {
+      "overall_score_band": [30, 50],
+      "criteria_expected": {
+        "specific_behavior": [10, 30],
+        "timely_contextual": [20, 40],
+        "objective_tone": [40, 60],
+        "strength_mentioned": [20, 40],
+        "improvement_area": [20, 40],
+        "improvement_plan": [10, 30]
+      },
+      "expected_strengths": [],
+      "expected_weaknesses": [
+        "Feedback is prolonged but still unspecific",
+        "Communication strengths are not anchored to a concrete moment",
+        "No actionable future behavior is described"
+      ],
+      "expected_key_suggestion": [
+        "Verknüpfen Sie das Lob und die Kritik mit einer konkret beobachteten Gesprächssituation"
+      ],
+      "forbidden_claims": [
+        "Do not reward length by itself",
+        "Do not claim a station-specific behavior example is present"
+      ]
+    }
+  },
+  {
+    "id": "en_mediocre_comm_short_01",
+    "language": "en",
+    "duration_seconds": 58.0,
+    "duration_bucket": "short",
+    "quality_band": "mediocre",
+    "notes": "Communication case with one concrete strength and a weakly actionable improvement area.",
+    "transcript": "You introduced yourself clearly and that helped the patient settle at the start of the encounter. One thing to improve is that you moved on quite quickly when the patient hesitated, so you missed a chance to explore the concern in more depth. Next time, pause for a moment and give the patient space before asking the next question. Overall, this was a decent performance.",
+    "gold_expected": {
+      "overall_score_band": [50, 68],
+      "criteria_expected": {
+        "specific_behavior": [60, 75],
+        "timely_contextual": [55, 70],
+        "objective_tone": [60, 75],
+        "strength_mentioned": [60, 75],
+        "improvement_area": [50, 70],
+        "improvement_plan": [45, 65]
+      },
+      "expected_strengths": [
+        "Specific observed strength at the beginning of the encounter"
+      ],
+      "expected_weaknesses": [
+        "Improvement advice is helpful but still somewhat broad",
+        "Station context is present but not richly detailed"
+      ],
+      "expected_key_suggestion": [
+        "Make the improvement plan more specific by naming the exact moment to pause and what follow-up question to ask"
+      ],
+      "forbidden_claims": [
+        "Do not score this as exemplary across all criteria"
+      ]
+    }
+  },
+  {
+    "id": "de_mediocre_proc_short_01",
+    "language": "de",
+    "duration_seconds": 54.0,
+    "duration_bucket": "short",
+    "quality_band": "mediocre",
+    "notes": "Procedure case with one observed action and a partially actionable recommendation.",
+    "transcript": "Bei der Blutentnahme haben Sie das Material zügig vorbereitet und den Ablauf insgesamt ruhig begonnen. Verbessern sollten Sie, dass Sie dem Patienten den nächsten Schritt nicht immer angekündigt haben. Beim nächsten Mal sagen Sie kurz vorher an, was Sie jetzt tun, damit der Ablauf für den Patienten nachvollziehbarer ist. Insgesamt war das solide, aber noch nicht ganz vollständig.",
+    "gold_expected": {
+      "overall_score_band": [52, 70],
+      "criteria_expected": {
+        "specific_behavior": [60, 75],
+        "timely_contextual": [60, 75],
+        "objective_tone": [65, 80],
+        "strength_mentioned": [55, 70],
+        "improvement_area": [60, 75],
+        "improvement_plan": [55, 70]
+      },
+      "expected_strengths": [
+        "Concrete preparation behavior is named"
+      ],
+      "expected_weaknesses": [
+        "The feedback still lacks a richer example set",
+        "The plan is useful but not highly detailed"
+      ],
+      "expected_key_suggestion": [
+        "Ergänzen Sie ein weiteres konkretes Beispiel und formulieren Sie die Empfehlung noch unmittelbarer"
+      ],
+      "forbidden_claims": [
+        "Do not claim multiple strong examples are present if only one is clearly stated"
+      ]
+    }
+  },
+  {
+    "id": "en_mediocre_proc_medium_01",
+    "language": "en",
+    "duration_seconds": 86.0,
+    "duration_bucket": "medium",
+    "quality_band": "mediocre",
+    "notes": "Procedure case with balanced structure but limited specificity in the improvement plan.",
+    "transcript": "During the examination you checked the vital signs in a logical order, and that made the sequence easy to follow. You should improve how you explain the purpose of those checks, because at the moment the patient may not understand why you are doing each step. Next time, add a short explanation when you move from one vital sign to the next. This was a fair performance with a clear area to build on.",
+    "gold_expected": {
+      "overall_score_band": [55, 72],
+      "criteria_expected": {
+        "specific_behavior": [60, 75],
+        "timely_contextual": [60, 75],
+        "objective_tone": [65, 80],
+        "strength_mentioned": [55, 70],
+        "improvement_area": [60, 75],
+        "improvement_plan": [50, 68]
+      },
+      "expected_strengths": [
+        "One procedural sequence is clearly acknowledged"
+      ],
+      "expected_weaknesses": [
+        "The improvement plan is still somewhat generic",
+        "The station remains only moderately contextualized"
+      ],
+      "expected_key_suggestion": [
+        "Specify exactly what explanation should be added during each vital-sign transition"
+      ],
+      "forbidden_claims": [
+        "Do not overstate the actionability of the plan"
+      ]
+    }
+  },
+  {
+    "id": "de_mediocre_comm_long_01",
+    "language": "de",
+    "duration_seconds": 104.0,
+    "duration_bucket": "long",
+    "quality_band": "mediocre",
+    "notes": "Longer communication case with specific strengths and weaknesses but still moderate calibration.",
+    "transcript": "Sie haben das Gespräch freundlich eröffnet und dem Patienten am Anfang Raum gegeben, seine Beschwerden zu schildern. Positiv war auch, dass Sie Blickkontakt gehalten und nicht unterbrochen haben. Verbesserungsfähig ist, dass Sie am Ende recht schnell zum Abschluss gekommen sind, ohne die Hauptsorge des Patienten noch einmal zusammenzufassen. Beim nächsten Mal fassen Sie den Kern des Anliegens in einem Satz zusammen und fragen noch einmal, ob Sie den Patienten richtig verstanden haben. Insgesamt war das ein gutes Gespräch mit klaren Entwicklungsmöglichkeiten.",
+    "gold_expected": {
+      "overall_score_band": [60, 75],
+      "criteria_expected": {
+        "specific_behavior": [65, 80],
+        "timely_contextual": [65, 80],
+        "objective_tone": [65, 80],
+        "strength_mentioned": [65, 80],
+        "improvement_area": [65, 80],
+        "improvement_plan": [60, 75]
+      },
+      "expected_strengths": [
+        "Two communication behaviors are explicitly named"
+      ],
+      "expected_weaknesses": [
+        "The feedback is good but not highly detailed",
+        "Calibration should remain moderate rather than elite"
+      ],
+      "expected_key_suggestion": [
+        "Die Abschlussphase noch präziser an die beobachtete Gesprächssituation koppeln"
+      ],
+      "forbidden_claims": [
+        "Do not score this in the exemplary range without very strong justification"
+      ]
+    }
+  },
+  {
+    "id": "en_strong_comm_medium_01",
+    "language": "en",
+    "duration_seconds": 82.0,
+    "duration_bucket": "medium",
+    "quality_band": "strong",
+    "notes": "Strong communication-focused feedback with concrete strengths, concrete weakness, and specific next step.",
+    "transcript": "One thing you did particularly well was explaining why you wanted to ask sensitive questions before moving into the social history, because that made the patient visibly more comfortable. You also checked twice whether the patient wanted to add anything, which kept the conversation patient-centred. One thing to improve is that when the patient mentioned being worried about work, you acknowledged it but moved on immediately. Next time, stay with that concern for one more question, for example by asking what part of work is worrying them most. That will help you understand the patient agenda more fully while keeping the structure you already showed.",
+    "gold_expected": {
+      "overall_score_band": [82, 94],
+      "criteria_expected": {
+        "specific_behavior": [85, 95],
+        "timely_contextual": [80, 90],
+        "objective_tone": [80, 90],
+        "strength_mentioned": [85, 95],
+        "improvement_area": [80, 90],
+        "improvement_plan": [80, 92]
+      },
+      "expected_strengths": [
+        "Concrete, observed communication strengths with station-level detail"
+      ],
+      "expected_weaknesses": [
+        "Only minor gaps remain"
+      ],
+      "expected_key_suggestion": [
+        "Continue using specific observed examples and preserve this level of concrete follow-up advice"
+      ],
+      "forbidden_claims": [
+        "Do not invent additional weaknesses beyond those stated"
+      ]
+    }
+  },
+  {
+    "id": "de_strong_proc_medium_01",
+    "language": "de",
+    "duration_seconds": 91.0,
+    "duration_bucket": "medium",
+    "quality_band": "strong",
+    "notes": "Strong procedure-focused feedback with clear observation, strength, improvement area, and action plan.",
+    "transcript": "Bei der Untersuchung haben Sie den Patienten vor jedem Schritt kurz orientiert, und besonders gut war, dass Sie vor der Blutdruckmessung erklärt haben, warum dieser Wert in diesem Fall wichtig ist. Dadurch wirkte der Ablauf ruhig und nachvollziehbar. Verbessern sollten Sie, dass Sie nach der Temperaturmessung direkt weitergegangen sind, ohne das Ergebnis noch einmal in den Gesamtablauf einzuordnen. Beim nächsten Mal sagen Sie an dieser Stelle einen kurzen Satz wie: 'Ich prüfe das, um die Einschätzung der akuten Situation zu vervollständigen.' So machen Sie Ihr klinisches Denken sichtbarer, ohne den Ablauf zu verlangsamen.",
+    "gold_expected": {
+      "overall_score_band": [82, 94],
+      "criteria_expected": {
+        "specific_behavior": [85, 95],
+        "timely_contextual": [82, 92],
+        "objective_tone": [80, 90],
+        "strength_mentioned": [85, 95],
+        "improvement_area": [82, 92],
+        "improvement_plan": [82, 94]
+      },
+      "expected_strengths": [
+        "The feedback names concrete procedural actions and a station-relevant explanation"
+      ],
+      "expected_weaknesses": [
+        "Only small refinements are needed"
+      ],
+      "expected_key_suggestion": [
+        "Beibehalten: konkrete Beobachtung plus sofort umsetzbare Formulierungshilfe"
+      ],
+      "forbidden_claims": [
+        "Do not downscore this for lacking an improvement area"
+      ]
+    }
+  },
+  {
+    "id": "en_strong_proc_short_01",
+    "language": "en",
+    "duration_seconds": 66.0,
+    "duration_bucket": "short",
+    "quality_band": "strong",
+    "notes": "Short but still strong procedure feedback, demonstrating that brevity can still be effective.",
+    "transcript": "You kept the procedure organized by preparing the equipment before touching the patient, and you told the patient what you were about to do before each contact. That was a clear strength because it made the interaction feel safe and controlled. To improve, when you moved to the temperature and blood pressure checks, you did not explain why those values mattered in this scenario. Next time, add one short sentence linking each check to your assessment of the patient. That will make your reasoning clearer without slowing you down.",
+    "gold_expected": {
+      "overall_score_band": [78, 90],
+      "criteria_expected": {
+        "specific_behavior": [82, 92],
+        "timely_contextual": [78, 88],
+        "objective_tone": [80, 90],
+        "strength_mentioned": [82, 92],
+        "improvement_area": [78, 88],
+        "improvement_plan": [78, 90]
+      },
+      "expected_strengths": [
+        "Brevity with preserved specificity and actionability"
+      ],
+      "expected_weaknesses": [
+        "Only limited detail because of short format"
+      ],
+      "expected_key_suggestion": [
+        "Maintain the same concise structure while preserving concrete behavior references"
+      ],
+      "forbidden_claims": [
+        "Do not penalize the case merely for being under the target duration"
+      ]
+    }
+  },
+  {
+    "id": "de_strong_comm_short_01",
+    "language": "de",
+    "duration_seconds": 69.0,
+    "duration_bucket": "short",
+    "quality_band": "strong",
+    "notes": "Short communication case with strong station anchoring and a specific next-step suggestion.",
+    "transcript": "Gut gelungen ist, dass Sie die emotionale Reaktion des Patienten direkt aufgegriffen und mit den Worten gespiegelt haben, dass ihn die Situation gerade überfordert. Dadurch haben Sie die Beziehung stabilisiert. Verbesserungsfähig ist, dass Sie danach sehr schnell in den Fragenkatalog zurückgegangen sind. Beim nächsten Mal bleiben Sie noch einen Moment bei diesem Gefühl und fragen konkret, wovor der Patient im Moment am meisten Angst hat. So vertiefen Sie das Gespräch, ohne den roten Faden zu verlieren.",
+    "gold_expected": {
+      "overall_score_band": [80, 92],
+      "criteria_expected": {
+        "specific_behavior": [84, 94],
+        "timely_contextual": [80, 90],
+        "objective_tone": [80, 90],
+        "strength_mentioned": [84, 94],
+        "improvement_area": [80, 90],
+        "improvement_plan": [80, 92]
+      },
+      "expected_strengths": [
+        "The emotional communication behavior is explicitly identified"
+      ],
+      "expected_weaknesses": [
+        "Only minor expansion could make it even stronger"
+      ],
+      "expected_key_suggestion": [
+        "Die konkrete Anschlussfrage als Modell für künftiges Feedback beibehalten"
+      ],
+      "forbidden_claims": [
+        "Do not reduce the score because the feedback is concise"
+      ]
+    }
+  },
+  {
+    "id": "en_edge_comm_short_01",
+    "language": "en",
+    "duration_seconds": 49.0,
+    "duration_bucket": "short",
+    "quality_band": "edge",
+    "notes": "ASR-like communication transcript with hesitations and repetitions but recoverable meaning.",
+    "transcript": "You, um, you did one thing well at the start, which was explaining what the conversation was about before, before asking the patient the private questions. That helped. One thing to improve is when the patient paused, you sort of, you sort of filled the silence very fast. Next time wait two seconds there and ask one follow-up about what they were worried about. So overall good structure, just a bit quick in that emotional moment.",
+    "gold_expected": {
+      "overall_score_band": [62, 78],
+      "criteria_expected": {
+        "specific_behavior": [70, 85],
+        "timely_contextual": [65, 80],
+        "objective_tone": [65, 80],
+        "strength_mentioned": [68, 82],
+        "improvement_area": [68, 82],
+        "improvement_plan": [65, 80]
+      },
+      "expected_strengths": [
+        "Despite disfluency, the content still contains a clear concrete strength and next step"
+      ],
+      "expected_weaknesses": [
+        "Some wording is noisy and may limit confidence"
+      ],
+      "expected_key_suggestion": [
+        "Score the content, not the disfluency, while staying conservative if meaning is ambiguous"
+      ],
+      "forbidden_claims": [
+        "Do not punish ASR-like repetition by itself",
+        "Do not hallucinate missing station details"
+      ]
+    }
+  },
+  {
+    "id": "de_edge_proc_medium_01",
+    "language": "de",
+    "duration_seconds": 88.0,
+    "duration_bucket": "medium",
+    "quality_band": "edge",
+    "notes": "Procedure case with repetition and slightly fragmented phrasing, but still meaningful feedback content.",
+    "transcript": "Bei der Untersuchung war gut, dass Sie, also dass Sie den Patienten vorher informiert haben, bevor Sie begonnen haben. Auch die Reihenfolge war im Grunde nachvollziehbar. Nicht so gut war, dass Sie bei Blutdruck und Temperatur sehr schnell, sehr schnell weitergegangen sind und nicht erklärt haben, warum genau diese Werte jetzt wichtig sind. Für das nächste Mal würde ich sagen: sagen Sie an dieser Stelle kurz den Grund mit dazu, damit Patient und Prüfer Ihren Gedankengang besser sehen können.",
+    "gold_expected": {
+      "overall_score_band": [62, 78],
+      "criteria_expected": {
+        "specific_behavior": [70, 85],
+        "timely_contextual": [68, 82],
+        "objective_tone": [68, 82],
+        "strength_mentioned": [68, 82],
+        "improvement_area": [70, 85],
+        "improvement_plan": [68, 82]
+      },
+      "expected_strengths": [
+        "The underlying observation remains concrete despite repetition"
+      ],
+      "expected_weaknesses": [
+        "Language is somewhat fragmented"
+      ],
+      "expected_key_suggestion": [
+        "Ambiguität zurückhaltend bewerten, aber die klare Verhaltensaussage nicht verlieren"
+      ],
+      "forbidden_claims": [
+        "Do not interpret repetition alone as poor feedback quality"
+      ]
+    }
+  },
+  {
+    "id": "en_edge_proc_long_01",
+    "language": "en",
+    "duration_seconds": 121.0,
+    "duration_bucket": "long",
+    "quality_band": "edge",
+    "notes": "Long case where the content is mixed: several specifics are present, but the message is uneven and partly redundant.",
+    "transcript": "You did a good job preparing the equipment and keeping the sequence in order, and you also checked that the patient was comfortable before you continued. That was helpful. I also liked that you remembered the hygiene steps. Where it became weaker was around the vital signs, because you named them but did not consistently explain what they were contributing to your assessment, and then later you repeated the same advice in a more general way. Next time, keep the feedback at the same level of detail throughout: say exactly which step needed more explanation and model the sentence you would like to hear. If you do that, the whole performance will look more consistent.",
+    "gold_expected": {
+      "overall_score_band": [68, 84],
+      "criteria_expected": {
+        "specific_behavior": [75, 88],
+        "timely_contextual": [72, 85],
+        "objective_tone": [70, 84],
+        "strength_mentioned": [72, 86],
+        "improvement_area": [72, 86],
+        "improvement_plan": [70, 84]
+      },
+      "expected_strengths": [
+        "Several specific procedural observations are present"
+      ],
+      "expected_weaknesses": [
+        "The message is partly redundant and unevenly calibrated"
+      ],
+      "expected_key_suggestion": [
+        "Reward the specificity but do not overrate the consistency"
+      ],
+      "forbidden_claims": [
+        "Do not confuse longer feedback with uniformly strong feedback"
+      ]
+    }
+  },
+  {
+    "id": "de_edge_comm_medium_01",
+    "language": "de",
+    "duration_seconds": 83.0,
+    "duration_bucket": "medium",
+    "quality_band": "edge",
+    "notes": "Communication case with mixed specificity: one very strong example plus more generic wrapping language.",
+    "transcript": "Positiv war, dass Sie auf die Tränen des Patienten nicht einfach weitergefragt haben, sondern kurz benannt haben, dass die Situation ihn gerade belastet. Das war ein guter Moment im Gespräch. Danach wurde das Feedback aber wieder etwas allgemeiner, weil Sie nur gesagt haben, man müsse noch empathischer sein. Für das nächste Mal wäre es besser, genau an diesem Punkt zu sagen, welche Anschlussfrage hilfreich gewesen wäre, zum Beispiel: 'Was macht Ihnen daran im Moment am meisten Sorge?' Insgesamt also ein gutes Beispiel mit einer etwas unscharfen Einbettung.",
+    "gold_expected": {
+      "overall_score_band": [66, 82],
+      "criteria_expected": {
+        "specific_behavior": [75, 88],
+        "timely_contextual": [70, 84],
+        "objective_tone": [68, 82],
+        "strength_mentioned": [75, 88],
+        "improvement_area": [62, 78],
+        "improvement_plan": [68, 82]
+      },
+      "expected_strengths": [
+        "A very strong concrete communication example is present"
+      ],
+      "expected_weaknesses": [
+        "Part of the framing slips back into generic language"
+      ],
+      "expected_key_suggestion": [
+        "Die konkrete Stärke beibehalten und die allgemeine Kritik ebenso konkret machen"
+      ],
+      "forbidden_claims": [
+        "Do not treat the whole feedback as uniformly strong if parts are generic"
+      ]
+    }
+  }
+]

@@ -51,6 +51,15 @@ FEEDBACK_QUALITY_CRITERIA: list[dict] = [
                 "At least one behavior referenced but described imprecisely or "
                 "without enough context to identify what exactly happened."
             ),
+            70: (
+                "At least one observable behavior is named clearly enough to be "
+                "useful, but the example is limited in detail, context, or scope."
+            ),
+            85: (
+                "More than one concrete observed behavior is identified, or one "
+                "behavior is described with clear station-specific detail and "
+                "little ambiguity."
+            ),
             100: (
                 "One or more concrete, observable student actions named clearly "
                 "and unambiguously, tied to a specific moment in the station."
@@ -76,6 +85,16 @@ FEEDBACK_QUALITY_CRITERIA: list[dict] = [
             50: (
                 "Some contextual reference is present but the feedback could "
                 "largely apply to any student or any station."
+            ),
+            70: (
+                "The feedback is clearly about this encounter and contains at "
+                "least one station-relevant detail, but the contextual anchoring "
+                "is still limited."
+            ),
+            85: (
+                "The feedback is strongly anchored to this student's performance "
+                "at this station, with multiple clear references to what happened "
+                "in the encounter."
             ),
             100: (
                 "Feedback is clearly and specifically tied to this student's "
@@ -103,6 +122,14 @@ FEEDBACK_QUALITY_CRITERIA: list[dict] = [
                 "Mostly objective with one or two clearly evaluative or judgmental "
                 "phrases that undermine the tone."
             ),
+            70: (
+                "Largely objective and behavior-focused, with only minor "
+                "evaluative phrasing that does not dominate the feedback."
+            ),
+            85: (
+                "Consistently objective and descriptive, with little or no drift "
+                "into personal judgment or unsupported praise."
+            ),
             100: (
                 "Consistently objective throughout. All statements describe "
                 "observable behaviors without personal judgment."
@@ -125,6 +152,14 @@ FEEDBACK_QUALITY_CRITERIA: list[dict] = [
             50: (
                 "A strength is mentioned but without a concrete example or "
                 "specific behavior reference."
+            ),
+            70: (
+                "At least one genuine strength is linked to an observable behavior, "
+                "but the example is brief or only moderately detailed."
+            ),
+            85: (
+                "A clear strength is explicitly named and supported by a concrete, "
+                "relevant example from the station."
             ),
             100: (
                 "At least one clear, specific strength named with a concrete "
@@ -152,6 +187,14 @@ FEEDBACK_QUALITY_CRITERIA: list[dict] = [
                 "An improvement area is named but described as a trait or attitude "
                 "rather than a specific changeable behavior."
             ),
+            70: (
+                "An improvement area is described in changeable behavioral terms, "
+                "but the recommendation remains somewhat broad or only partially specific."
+            ),
+            85: (
+                "A clear, changeable behavior is identified as the improvement "
+                "target, with specific wording that makes the issue easy to understand."
+            ),
             100: (
                 "At least one concrete, specific improvement described as an "
                 "actionable behavior change the student can make."
@@ -174,6 +217,14 @@ FEEDBACK_QUALITY_CRITERIA: list[dict] = [
             50: (
                 "A vague suggestion is present, but without enough specificity to "
                 "be actionable."
+            ),
+            70: (
+                "At least one usable next step is offered, but it is still limited "
+                "in detail, precision, or immediate practicality."
+            ),
+            85: (
+                "A concrete next step or practice strategy is clearly stated and "
+                "is well aligned with the observed weakness."
             ),
             100: (
                 "At least one concrete, specific next step or action plan offered "
@@ -222,7 +273,10 @@ def format_criteria_for_prompt() -> str:
         lines.append(f"Label (DE): {criterion['label']['de']}")
         lines.append(f"Guidance: {criterion['guidance']}")
         lines.append("Scoring anchors:")
-        for score, description in criterion["scoring_anchors"].items():
+        for score, description in sorted(
+            criterion["scoring_anchors"].items(),
+            key=lambda item: item[0],
+        ):
             lines.append(f"  {score}/100: {description}")
         lines.append("")
 
