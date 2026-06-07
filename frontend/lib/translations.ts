@@ -381,6 +381,10 @@ export const TRANSLATIONS = {
     de: "Wichtigste Empfehlung",
     en: "Key recommendation",
   },
+  feedbackExcerpt: {
+    de: "Belegstelle",
+    en: "Excerpt",
+  },
   coachingChatTitle: {
     de: "Coaching-Chat",
     en: "Coaching chat",

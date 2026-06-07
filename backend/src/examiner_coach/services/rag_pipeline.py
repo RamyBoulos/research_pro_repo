@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 CRITERION_AWARE_RETRIEVAL_HINT = (
     "Find educational guidance about evaluating the quality of OSCE examiner feedback. "
-    "Prioritize evidence about specific observed behavior, timely and contextual feedback, "
+    "Prioritize evidence about specific observed behavior, contextual feedback, "
     "objective and non-evaluative tone, explicit strengths, changeable improvement areas, "
     "and concrete improvement plans or suggestions for change."
 )
@@ -35,7 +35,6 @@ GUIDANCE_BONUS_PATTERNS = (
     "specific",
     "specific examples",
     "direct observation",
-    "timely",
     "contextual",
     "neutral wording",
     "objective",
@@ -46,7 +45,6 @@ GUIDANCE_BONUS_PATTERNS = (
     "action plan",
     "konkret",
     "beobacht",
-    "zeitnah",
     "kontext",
     "objektiv",
     "veraenderbar",

@@ -42,7 +42,7 @@ criticism without a clear behavioral reference.
 
 High-scoring feedback clearly identifies one or more specific observed actions.
 
-### 2. Timely and contextual
+### 2. Contextual feedback
 
 Backend ID:
 
@@ -51,8 +51,9 @@ timely_contextual
 ```
 
 This criterion checks whether the feedback is anchored in the current OSCE
-station and the immediate performance. Feedback should sound connected to the
-specific scenario rather than being reusable for any student or any station.
+station, scenario, and student performance. Feedback should sound connected to
+what the student did in this specific encounter rather than being reusable for
+any student or any station.
 
 Low-scoring feedback is generic and decontextualized.
 

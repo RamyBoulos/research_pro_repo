@@ -52,7 +52,7 @@ For a fuller backend walkthrough, see [docs/architecture.md](docs/architecture.m
 The evaluation rubric currently scores six dimensions of examiner feedback:
 
 - Specific observed behavior named
-- Timely and contextual feedback
+- Contextual feedback
 - Objective and non-evaluative tone
 - Explicitly mentioned strength
 - Changeable area for improvement

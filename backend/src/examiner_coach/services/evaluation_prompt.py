@@ -69,13 +69,13 @@ FEEDBACK_QUALITY_CRITERIA: list[dict] = [
     {
         "id": "timely_contextual",
         "label": {
-            "en": "Timely and contextual",
-            "de": "Zeitnah und kontextuell",
+            "en": "Contextual feedback",
+            "de": "Kontextbezogenes Feedback",
         },
         "guidance": (
-            "Was the feedback clearly anchored to what just happened at this "
-            "specific OSCE station? Generic feedback that could apply to any "
-            "student or any station scores low here."
+            "Was the feedback clearly anchored to this specific OSCE station, "
+            "scenario, and student performance? Generic feedback that could "
+            "apply to any student or any station scores low here."
         ),
         "scoring_anchors": {
             0: (
@@ -294,23 +294,23 @@ def format_json_schema() -> str:
 
     return f"""{{
   "summary": {{
-    "en": "<short overall summary in English, 2-4 sentences>",
-    "de": "<short overall summary in German, 2-4 sentences>"
+    "en": "<short overall summary in English, 2-4 sentences, natural prose>",
+    "de": "<short overall summary in German, 2-4 sentences, natural prose>"
   }},
   "criteria": [
     {{
       "criterion_id": "{example_id}",
       "score_percent": "<integer 0-100>",
       "suggestion": {{
-        "en": "<very short one-sentence suggestion in English>",
-        "de": "<very short one-sentence suggestion in German>"
+        "en": "<clear one-sentence improvement point in English>",
+        "de": "<clear one-sentence improvement point in German>"
       }},
       "quote": null
     }}
   ],
   "key_suggestion": {{
-    "en": "<single most important improvement tip in English, 1-2 sentences>",
-    "de": "<single most important improvement tip in German, 1-2 sentences>"
+    "en": "<single most important improvement tip in English, 1-2 sentences, natural prose>",
+    "de": "<single most important improvement tip in German, 1-2 sentences, natural prose>"
   }}
 }}"""
 
@@ -367,7 +367,8 @@ COMMON SCORING ERRORS TO AVOID:
   general directive ("be more systematic", "practise more", "ask all points").
   A scorable plan requires a concrete, specific next step.
 - Do NOT score "timely_contextual" above 80 unless the feedback references
-  a specific moment or detail from this particular station.
+  a specific moment, scenario detail, or student action from this particular
+  station. This criterion is about contextual anchoring, not timing.
 
 EVIDENCE USE:
 - The transcript is the PRIMARY evidence. Read it literally.
@@ -382,8 +383,13 @@ QUOTE POLICY:
 - If no relevant quote exists, set quote to null.
 
 SUGGESTION POLICY:
-- For every criterion, return one very short sentence of practical advice.
-- Keep each suggestion concise and specific.
+- For every criterion, return one clear sentence of practical advice.
+- Keep each suggestion concise, specific, and natural-sounding.
+- Do not mention criterion ids such as "timely_contextual" in user-facing text.
+- Phrase suggestions as improvement points, not labels or fragments.
+- For "timely_contextual", focus the suggestion on adding concrete station,
+  scenario, or student-performance details, for example what the student did,
+  said, missed, or handled in this OSCE encounter.
 - If the criterion is already strong, the suggestion may briefly reinforce the
   strength rather than correcting a weakness.
 

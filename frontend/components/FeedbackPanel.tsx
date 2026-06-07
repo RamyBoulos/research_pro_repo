@@ -114,7 +114,7 @@ function StructuredEvaluation({ evaluation }: { evaluation: ResolvedEvaluationRe
             <p style={{ marginTop: "10px", marginBottom: 0 }}>{criterion.suggestion}</p>
             {criterion.quote ? (
               <p style={{ marginTop: "8px", marginBottom: 0, color: "var(--muted)", fontStyle: "italic" }}>
-                "{criterion.quote}"
+                {t("feedbackExcerpt")}: "{criterion.quote}"
               </p>
             ) : null}
           </div>
