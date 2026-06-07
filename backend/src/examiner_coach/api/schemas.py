@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -87,6 +88,66 @@ class ResolvedEvaluationResult(BaseModel):
     total_criteria: int
     criteria: list[ResolvedCriterionResult]
     key_suggestion: str
+
+
+# ── Coaching ────────────────────────────────────────────────
+
+class CoachingMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, description="Single chat message in the active UI language")
+
+
+class CoachingSessionSummary(BaseModel):
+    language: Language = Field(
+        default=Language.DE,
+        description="Language used for the rolling coaching memory",
+    )
+    learner_needs: list[str] = Field(default_factory=list)
+    main_weaknesses: list[str] = Field(default_factory=list)
+    explained_criteria: list[str] = Field(default_factory=list)
+    rewrite_examples_given: list[str] = Field(default_factory=list)
+    current_focus: str | None = None
+    open_questions: list[str] = Field(default_factory=list)
+
+
+class CoachingRequest(BaseModel):
+    transcript: str = Field(min_length=1, description="Original examiner transcript")
+    duration_seconds: float = Field(ge=0.0, description="Audio duration in seconds")
+    evaluation: ResolvedEvaluationResult
+    user_message: str = Field(min_length=1, description="Current user question for the coach")
+    conversation: list[CoachingMessage] = Field(default_factory=list)
+    session_summary: CoachingSessionSummary | None = None
+    output_language: Language = Field(
+        default=Language.DE,
+        description="Preferred language for the coaching response",
+    )
+
+
+class CoachingCitation(BaseModel):
+    source: str
+    section: str | None = None
+    quote: dict[Language, str] | None = None
+    rationale: dict[Language, str] | None = None
+
+
+class CoachingResponse(BaseModel):
+    answer: dict[Language, str]
+    citations: list[CoachingCitation] = Field(default_factory=list)
+    updated_session_summary: CoachingSessionSummary
+
+
+class ResolvedCoachingCitation(BaseModel):
+    source: str
+    section: str | None = None
+    quote: str | None = None
+    rationale: str | None = None
+
+
+class ResolvedCoachingResponse(BaseModel):
+    output_language: Language
+    answer: str
+    citations: list[ResolvedCoachingCitation] = Field(default_factory=list)
+    updated_session_summary: CoachingSessionSummary
 
 
 # ── Documents ────────────────────────────────────────────────

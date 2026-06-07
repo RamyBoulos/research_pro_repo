@@ -25,7 +25,7 @@ def create_app() -> FastAPI:
     # In production: restrict to actual deployment domain
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"] if settings.is_development else ["https://your-domain.de"],
+        allow_origins=["*"] if settings.is_development else ["https://your-domain.de"], # Add your production domain here
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -45,8 +45,8 @@ def create_app() -> FastAPI:
     from examiner_coach.api.routes import evaluation
     app.include_router(evaluation.router, prefix="/api", tags=["evaluation"])
 
-    # from examiner_coach.api.routes import documents
-    # app.include_router(documents.router, prefix="/api", tags=["documents"])
+    from examiner_coach.api.routes import coaching
+    app.include_router(coaching.router, prefix="/api", tags=["coaching"])
 
     return app
 

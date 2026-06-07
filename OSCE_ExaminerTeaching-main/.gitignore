@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.env.local
+data/audio/
+data/submissions.json
+data/sessions.json
+data/users.json
+data/evaluations/
+modeltest/datafiles/
+public/videos/
+.venv/

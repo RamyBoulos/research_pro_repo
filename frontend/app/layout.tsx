@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "@/lib/LanguageProvider";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -33,7 +34,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div style={{ width: "1px", height: "32px", background: "rgba(255,255,255,0.3)", margin: "0 24px" }} />
           <img src="/EKFZ_Digital_Health_rgb_weiss.png" alt="EKFZ Digital Health" style={{ height: "40px" }} />
         </header>
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

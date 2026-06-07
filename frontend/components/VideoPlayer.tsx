@@ -1,10 +1,14 @@
 "use client";
 
+import { useLanguage } from "@/lib/LanguageProvider";
+
 interface VideoPlayerProps {
   url: string | null;
 }
 
 export default function VideoPlayer({ url }: VideoPlayerProps) {
+  const { t } = useLanguage();
+
   if (!url) {
     return (
       <div
@@ -16,7 +20,7 @@ export default function VideoPlayer({ url }: VideoPlayerProps) {
           color: "var(--muted)"
         }}
       >
-        Video wird geladen...
+        {t("videoLoading")}
       </div>
     );
   }
@@ -28,7 +32,7 @@ export default function VideoPlayer({ url }: VideoPlayerProps) {
       style={{ width: "100%", borderRadius: "16px", border: "1px solid var(--border)" }}
     >
       <source src={url} />
-      Dein Browser unterstuetzt dieses Video nicht.
+      {t("videoUnsupported")}
     </video>
   );
 }

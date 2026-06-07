@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+from json import JSONDecodeError
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -45,7 +46,18 @@ def transcribe_audio_bytes(
             )
             response.raise_for_status()
 
-        data = response.json()
+        try:
+            data = response.json()
+        except JSONDecodeError as exc:
+            logger.exception(
+                "Transcription upstream returned non-JSON response: status=%s body=%s",
+                response.status_code,
+                response.text[:500],
+            )
+            raise RuntimeError(
+                f"Transcription upstream returned invalid JSON (status={response.status_code}). "
+                f"Response: {response.text[:500]}"
+            ) from exc
         transcript = str(data.get("text") or "").strip()
         if not transcript:
             raise ValueError("Transcription returned empty text.")
@@ -55,8 +67,25 @@ def transcribe_audio_bytes(
             duration_seconds=duration_seconds,
         )
     except httpx.HTTPError as exc:
-        logger.exception("Transcription request failed")
-        raise RuntimeError("Transcription request failed.") from exc
+        status_code = exc.response.status_code if exc.response is not None else None
+        response_text = ""
+        if exc.response is not None:
+            try:
+                response_text = exc.response.text.strip()
+            except Exception:
+                response_text = ""
+        logger.exception(
+            "Transcription request failed: status=%s body=%s",
+            status_code,
+            response_text[:500],
+        )
+        detail = f"Transcription request failed (status={status_code})."
+        if response_text:
+            detail = f"{detail} Upstream response: {response_text[:500]}"
+        raise RuntimeError(detail) from exc
+    except Exception as exc:
+        logger.exception("Unexpected transcription failure")
+        raise RuntimeError(f"Unexpected transcription failure: {exc}") from exc
     finally:
         if temp_path and temp_path.exists():
             os.unlink(temp_path)

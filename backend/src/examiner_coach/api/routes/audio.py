@@ -43,5 +43,11 @@ async def transcribe_audio(
         logger.exception("Transcription failed")
         raise HTTPException(
             status_code=502,
-            detail="Transcription failed due to an upstream error.",
+            detail=str(exc),
+        ) from exc
+    except Exception as exc:
+        logger.exception("Unexpected error during transcription route")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected transcription route error: {exc}",
         ) from exc

@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { ResolvedEvaluationResult } from "@/types/evaluation";
+import type { EvaluationLanguageBundle, ResolvedEvaluationResult } from "@/types/evaluation";
 
 export interface VideoRecord {
   id: string;
@@ -24,6 +24,7 @@ export interface SubmissionRecord {
   status: "uploaded" | "processing" | "done" | "error";
   transcript?: string | null;
   evaluation?: ResolvedEvaluationResult | null;
+  evaluations?: EvaluationLanguageBundle | null;
   error_message?: string | null;
   audio_path: string;
   created_at: string;

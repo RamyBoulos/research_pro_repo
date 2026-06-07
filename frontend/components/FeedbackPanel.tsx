@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import type { ResolvedEvaluationResult } from "@/types/evaluation";
+import type { EvaluationLanguageBundle, ResolvedEvaluationResult } from "@/types/evaluation";
+import CoachingPanel from "./CoachingPanel";
+import { useLanguage } from "@/lib/LanguageProvider";
 
 export interface FeedbackState {
   status: "idle" | "uploading" | "processing" | "done" | "error";
   transcript?: string | null;
   evaluation?: ResolvedEvaluationResult | null;
+  evaluations?: EvaluationLanguageBundle | null;
   errorMessage?: string | null;
   info?: string | null;
 }
@@ -17,26 +20,30 @@ interface FeedbackPanelProps {
 
 export default function FeedbackPanel({ state }: FeedbackPanelProps) {
   const [showTranscript, setShowTranscript] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <div className="panel fade-in stack">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3 style={{ margin: 0 }}>Feedback</h3>
+        <h3 style={{ margin: 0 }}>{t("evaluationHeader")}</h3>
         <span className="tag">
-          {state.status === "idle" ? "Bereit" : state.status}
+          {state.status === "idle" ? t("readyStatus") : state.status === "uploading" ? t("uploadingStatus") : state.status === "processing" ? t("processingStatus") : state.status}
         </span>
       </div>
 
-      {state.status === "uploading" ? <p>Upload laeuft...</p> : null}
-      {state.status === "processing" ? <p>Auswertung laeuft...</p> : null}
+      {state.status === "uploading" ? <p>{t("uploadingStatus")}</p> : null}
+      {state.status === "processing" ? <p>{t("processingStatus")}</p> : null}
       {state.status === "error" ? (
-        <p style={{ color: "#c0392b" }}>{state.errorMessage || "Fehler bei der Auswertung."}</p>
+        <p style={{ color: "#c0392b" }}>{state.errorMessage || t("errorDefault")}</p>
       ) : null}
       {state.status === "done" ? (
         <div className="stack">
           {state.evaluation ? <StructuredEvaluation evaluation={state.evaluation} /> : null}
+          {state.evaluation && state.transcript ? (
+            <CoachingPanel transcript={state.transcript} evaluation={state.evaluation} />
+          ) : null}
           <button className="btn secondary" onClick={() => setShowTranscript((prev) => !prev)}>
-            {showTranscript ? "Transcript ausblenden" : "Transcript anzeigen"}
+            {showTranscript ? t("hideTranscript") : t("showTranscript")}
           </button>
           {showTranscript ? (
             <div style={{ whiteSpace: "pre-wrap", color: "var(--muted)" }}>
@@ -51,6 +58,8 @@ export default function FeedbackPanel({ state }: FeedbackPanelProps) {
 }
 
 function StructuredEvaluation({ evaluation }: { evaluation: ResolvedEvaluationResult }) {
+  const { t } = useLanguage();
+
   return (
     <div className="stack" style={{ gap: "16px" }}>
       <div
@@ -60,18 +69,18 @@ function StructuredEvaluation({ evaluation }: { evaluation: ResolvedEvaluationRe
           gap: "12px"
         }}
       >
-        <MetricCard label="Gesamtscore" value={`${evaluation.overall_score}/100`} />
-        <MetricCard label="Kriterien erfüllt" value={`${evaluation.criteria_met}/${evaluation.total_criteria}`} />
-        <MetricCard label="Dauer" value={`${Math.round(evaluation.duration_seconds)} s`} />
+        <MetricCard label={t("feedbackTotalScore")} value={`${evaluation.overall_score}/100`} />
+        <MetricCard label={t("feedbackCriteriaMet")} value={`${evaluation.criteria_met}/${evaluation.total_criteria}`} />
+        <MetricCard label={t("feedbackDuration")} value={`${Math.round(evaluation.duration_seconds)} s`} />
       </div>
 
       <div className="stack" style={{ gap: "8px" }}>
-        <strong>Zusammenfassung</strong>
+        <strong>{t("feedbackSummary")}</strong>
         <div style={{ whiteSpace: "pre-wrap" }}>{evaluation.summary}</div>
       </div>
 
       <div className="stack" style={{ gap: "12px" }}>
-        <strong>Kriterien</strong>
+        <strong>{t("feedbackCriteria")}</strong>
         {evaluation.criteria.map((criterion) => (
           <div
             key={criterion.criterion_id}
@@ -113,7 +122,7 @@ function StructuredEvaluation({ evaluation }: { evaluation: ResolvedEvaluationRe
       </div>
 
       <div className="stack" style={{ gap: "8px" }}>
-        <strong>Wichtigste Empfehlung</strong>
+        <strong>{t("feedbackKeySuggestion")}</strong>
         <div style={{ whiteSpace: "pre-wrap" }}>{evaluation.key_suggestion}</div>
       </div>
     </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/lib/LanguageProvider";
+import { EVALUATION_QUESTIONS } from "@/lib/translations";
 
 type LikertQuestion = {
   type: "likert";
@@ -16,31 +18,13 @@ type TextQuestion = {
 
 type Question = LikertQuestion | TextQuestion;
 
-const QUESTIONS: Question[] = [
-  { type: "likert", text: "Ich bin mit dem Feedback zufrieden.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Ich empfinde das Feedback als fair.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Ich halte das Feedback für gerechtfertigt.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Ich empfinde das Feedback als nützlich.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Ich empfinde das Feedback als hilfreich.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Das Feedback unterstützt mich stark.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Ich akzeptiere das Feedback.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Ich zweifle das Feedback an.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Ich weise das Feedback zurück.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Ich bin bereit, meine Leistung zu verbessern.", low: "trifft nicht zu", high: "trifft zu" },
-  { type: "likert", text: "Wenn ich dieses Feedback erhalte, fühle ich mich … zufrieden.", low: "Gar nicht", high: "Sehr" },
-  { type: "likert", text: "Wenn ich dieses Feedback erhalte, fühle ich mich … selbstsicher.", low: "Gar nicht", high: "Sehr" },
-  { type: "likert", text: "Wenn ich dieses Feedback erhalte, fühle ich mich … erfolgreich.", low: "Gar nicht", high: "Sehr" },
-  { type: "likert", text: "Wenn ich dieses Feedback erhalte, fühle ich mich … beleidigt.", low: "Gar nicht", high: "Sehr" },
-  { type: "likert", text: "Wenn ich dieses Feedback erhalte, fühle ich mich … verärgert.", low: "Gar nicht", high: "Sehr" },
-  { type: "likert", text: "Wenn ich dieses Feedback erhalte, fühle ich mich … frustriert.", low: "Gar nicht", high: "Sehr" },
-  { type: "text", text: "Haben Sie weitere Anmerkungen?" },
-];
-
 interface EvaluationPanelProps {
   onComplete?: () => void;
 }
 
 export default function EvaluationPanel({ onComplete }: EvaluationPanelProps) {
+  const { language, t } = useLanguage();
+  const QUESTIONS: Question[] = EVALUATION_QUESTIONS[language];
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<(number | string | null)[]>(
     Array(QUESTIONS.length).fill(null)
@@ -72,14 +56,18 @@ export default function EvaluationPanel({ onComplete }: EvaluationPanelProps) {
   if (submitted) {
     return (
       <div className="panel fade-in" style={{ textAlign: "center" }}>
-        <h2 style={{ fontFamily: "var(--font-fraunces)", marginTop: 0 }}>Vielen Dank!</h2>
-        <p style={{ color: "var(--muted)" }}>Ihre Antworten wurden gespeichert.</p>
+        <h2 style={{ fontFamily: "var(--font-fraunces)", marginTop: 0 }}>{t("thanks")}</h2>
+        <p style={{ color: "var(--muted)" }}>{t("answersSaved")}</p>
         <button
           className="btn secondary"
           style={{ marginTop: "16px" }}
-          onClick={() => { setStep(0); setAnswers(Array(QUESTIONS.length).fill(null)); setSubmitted(false); }}
+          onClick={() => {
+            setStep(0);
+            setAnswers(Array(QUESTIONS.length).fill(null));
+            setSubmitted(false);
+          }}
         >
-          Neu starten
+          {t("restart")}
         </button>
       </div>
     );
@@ -88,7 +76,7 @@ export default function EvaluationPanel({ onComplete }: EvaluationPanelProps) {
   return (
     <div className="panel fade-in stack">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ fontFamily: "var(--font-fraunces)", margin: 0 }}>Evaluation</h2>
+        <h2 style={{ fontFamily: "var(--font-fraunces)", margin: 0 }}>{t("evaluationHeader")}</h2>
         <span style={{ color: "var(--muted)", fontSize: "14px" }}>
           {step + 1} / {QUESTIONS.length}
         </span>
@@ -130,7 +118,7 @@ export default function EvaluationPanel({ onComplete }: EvaluationPanelProps) {
         <textarea
           value={typeof current === "string" ? current : ""}
           onChange={(e) => setAnswer(e.target.value)}
-          placeholder="Ihre Anmerkungen..."
+          placeholder={t("notesPlaceholder")}
           style={{
             width: "100%",
             minHeight: "120px",
@@ -147,7 +135,7 @@ export default function EvaluationPanel({ onComplete }: EvaluationPanelProps) {
       <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
         {step > 0 && (
           <button className="btn secondary" onClick={() => setStep((s) => s - 1)}>
-            Zurück
+            {t("back")}
           </button>
         )}
         {!isLast ? (
@@ -156,11 +144,11 @@ export default function EvaluationPanel({ onComplete }: EvaluationPanelProps) {
             onClick={() => setStep((s) => s + 1)}
             disabled={current === null}
           >
-            Weiter
+            {t("next")}
           </button>
         ) : (
           <button className="btn" onClick={handleSubmit}>
-            Absenden
+            {t("submit")}
           </button>
         )}
       </div>

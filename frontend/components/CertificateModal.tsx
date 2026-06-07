@@ -1,26 +1,41 @@
 "use client";
 
+import { useLanguage } from "@/lib/LanguageProvider";
 
 interface CertificateModalProps {
   name: string;
   onClose: () => void;
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export default function CertificateModal({ name, onClose }: CertificateModalProps) {
+  const { language, t } = useLanguage();
+  const [certificateNoticeBeforeName, certificateNoticeAfterName = ""] =
+    t("certificateNotice").split("{name}");
+
   const handleDownload = () => {
     if (!name.trim()) return;
 
-    const date = new Date().toLocaleDateString("de-DE", {
+    const date = new Date().toLocaleDateString(language === "de" ? "de-DE" : "en-US", {
       day: "2-digit",
       month: "long",
       year: "numeric",
     });
+    const safeName = escapeHtml(name.trim());
 
     const html = `<!DOCTYPE html>
-<html lang="de">
+<html lang="${language}">
 <head>
   <meta charset="UTF-8" />
-  <title>Teilnahmebescheinigung</title>
+  <title>${t("downloadCertificateLabel")}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Fraunces:ital,wght@0,400;0,700;1,400&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -87,12 +102,12 @@ export default function CertificateModal({ name, onClose }: CertificateModalProp
 </head>
 <body>
   <div class="cert">
-    <p class="label">Teilnahmebescheinigung</p>
-    <h1>Prüferschulung</h1>
-    <p class="body-text">Hiermit wird bestätigt, dass</p>
-    <div class="name">${name.trim()}</div>
+    <p class="label">${t("downloadCertificateLabel")}</p>
+    <h1>${t("downloadCertificateTrainingTitle")}</h1>
+    <p class="body-text">${t("downloadCertificateBody")}</p>
+    <div class="name">${safeName}</div>
     <p class="body-text">
-      erfolgreich an der <strong>Prüferschulung</strong> teilgenommen hat.
+      ${t("downloadCertificateSuccess")}
     </p>
     <hr class="divider" />
     <p class="footer">${date}</p>
@@ -125,17 +140,17 @@ export default function CertificateModal({ name, onClose }: CertificateModalProp
         style={{ width: "100%", maxWidth: "420px", gap: "20px" }}
       >
         <h2 style={{ fontFamily: "var(--font-fraunces)", margin: 0 }}>
-          Bescheinigung herunterladen
+          {t("certificateTitle")}
         </h2>
         <p style={{ color: "var(--muted)", margin: 0, fontSize: "14px" }}>
-          Die Bescheinigung wird auf den Namen <strong>{name}</strong> ausgestellt.
+          {certificateNoticeBeforeName}<strong>{name}</strong>{certificateNoticeAfterName}
         </p>
         <div style={{ display: "flex", gap: "12px" }}>
           <button className="btn secondary" onClick={onClose}>
-            Abbrechen
+            {t("certificateCancel")}
           </button>
           <button className="btn" onClick={handleDownload} disabled={!name.trim()}>
-            Herunterladen
+            {t("certificateDownloadButton")}
           </button>
         </div>
       </div>

@@ -25,7 +25,9 @@ class Settings(BaseSettings):
     kisski_voice_base_url: str = "https://saia.gwdg.de/v1"
 
     # ── Models ───────────────────────────────────────────────
-    kisski_llm_model: str = "llama-3.3-70b-instruct"
+    # Previous default, no longer present in the current SAIA /models response:
+    # kisski_llm_model: str = "llama-3.3-70b-instruct"
+    kisski_llm_model: str = "meta-llama-3.1-8b-instruct"
     kisski_judge_model: str = "gpt-oss-120b"
     kisski_embedding_model: str = "multilingual-e5-large-instruct"
     kisski_voice_model: str = "whisper-large-v2"

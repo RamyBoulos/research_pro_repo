@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/lib/LanguageProvider";
 
 interface AudioRecorderProps {
   onRecordingReady: (blob: Blob | null) => void;
@@ -21,10 +22,12 @@ export default function AudioRecorder({ onRecordingReady, onError }: AudioRecord
     };
   }, [audioUrl]);
 
+  const { t } = useLanguage();
+
   const startRecording = async () => {
     onError(null);
     if (!navigator.mediaDevices?.getUserMedia) {
-      onError("Browser unterstuetzt keine Audioaufnahme.");
+      onError(t("browserNoAudio"));
       return;
     }
 
@@ -42,7 +45,7 @@ export default function AudioRecorder({ onRecordingReady, onError }: AudioRecord
         stream.getTracks().forEach((track) => track.stop());
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
         if (blob.size < 8000) {
-          onError("Aufnahme zu kurz. Bitte erneut aufnehmen.");
+          onError(t("recordingTooShort"));
           onRecordingReady(null);
           return;
         }
@@ -55,7 +58,7 @@ export default function AudioRecorder({ onRecordingReady, onError }: AudioRecord
       recorder.start();
       setIsRecording(true);
     } catch {
-      onError("Mikrofon-Zugriff verweigert.");
+      onError(t("microphoneDenied"));
     }
   };
 
@@ -70,16 +73,16 @@ export default function AudioRecorder({ onRecordingReady, onError }: AudioRecord
     <div className="stack">
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
         <button className="btn" onClick={startRecording} disabled={isRecording}>
-          Aufnahme starten
+          {t("startRecording")}
         </button>
         <button className="btn secondary" onClick={stopRecording} disabled={!isRecording}>
-          Stop
+          {t("stopRecording")}
         </button>
       </div>
       {audioUrl ? (
         <audio controls src={audioUrl} style={{ width: "100%" }} />
       ) : (
-        <p style={{ color: "var(--muted)" }}>Noch keine Aufnahme.</p>
+        <p style={{ color: "var(--muted)" }}>{t("noRecording")}</p>
       )}
     </div>
   );

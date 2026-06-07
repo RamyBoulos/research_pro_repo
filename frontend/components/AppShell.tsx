@@ -8,6 +8,7 @@ import VideoSidebar, { VideoItem } from "./VideoSidebar";
 import EvaluationPanel from "./EvaluationPanel";
 import CertificateModal from "./CertificateModal";
 import InfoPanel from "./InfoPanel";
+import { useLanguage } from "@/lib/LanguageProvider";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 60000;
@@ -22,11 +23,13 @@ export default function AppShell({ user }: AppShellProps) {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>({ status: "idle" });
+  const [currentSubmissionId, setCurrentSubmissionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"videos" | "evaluation" | "info">("info");
   const [showCertificate, setShowCertificate] = useState(false);
   const [completedVideoIds, setCompletedVideoIds] = useState<string[]>([]);
   const [evaluationDone, setEvaluationDone] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
 
   const selectedVideo = useMemo(
     () => videos.find((video) => video.id === selectedVideoId) || null,
@@ -52,7 +55,7 @@ export default function AppShell({ user }: AppShellProps) {
   const loadVideos = useCallback(async () => {
     const response = await fetch("/api/videos");
     if (!response.ok) {
-      setError("Videos konnten nicht geladen werden.");
+      setError(t("videoLoadFailed"));
       return;
     }
     const data = await response.json();
@@ -60,17 +63,17 @@ export default function AppShell({ user }: AppShellProps) {
     if (!selectedVideoId && data.videos?.length) {
       setSelectedVideoId(data.videos[0].id);
     }
-  }, [selectedVideoId]);
+  }, [selectedVideoId, t]);
 
   const loadVideoUrl = useCallback(async (videoId: string) => {
     const response = await fetch(`/api/videos/${videoId}/url`);
     if (!response.ok) {
-      setError("Video-URL konnte nicht geladen werden.");
+      setError(t("videoUrlFailed"));
       return;
     }
     const data = await response.json();
     setVideoUrl(data.url);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadVideos();
@@ -89,16 +92,18 @@ export default function AppShell({ user }: AppShellProps) {
       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
       const response = await fetch(`/api/submissions/${submissionId}`);
       if (!response.ok) {
-        setFeedback({ status: "error", errorMessage: "Status konnte nicht geladen werden." });
+        setFeedback({ status: "error", errorMessage: t("statusLoadFailed") });
         return;
       }
       const data = await response.json();
       const submission = data.submission;
       if (submission.status === "done") {
+        setCurrentSubmissionId(submission.id);
         setFeedback({
           status: "done",
           transcript: submission.transcript,
-          evaluation: submission.evaluation
+          evaluation: submission.evaluation,
+          evaluations: submission.evaluations
         });
         loadStatus();
         return;
@@ -106,25 +111,26 @@ export default function AppShell({ user }: AppShellProps) {
       if (submission.status === "error") {
         setFeedback({
           status: "error",
-          errorMessage: submission.error_message || "Verarbeitung fehlgeschlagen."
+          errorMessage: submission.error_message || t("processingFailed")
         });
         return;
       }
     }
-    setFeedback({ status: "processing", info: "Bitte spaeter erneut laden." });
+    setFeedback({ status: "processing", info: t("processingFailed") });
   };
 
   const handleProcess = async () => {
     if (!audioBlob) {
-      setError("Bitte zuerst eine Audioaufnahme erstellen.");
+      setError(t("audioRequired"));
       return;
     }
     if (!selectedVideoId) {
-      setError("Bitte ein Video auswaehlen.");
+      setError(t("videoRequired"));
       return;
     }
 
     setError(null);
+    setCurrentSubmissionId(null);
     setFeedback({ status: "uploading" });
 
     const formData = new FormData();
@@ -138,16 +144,19 @@ export default function AppShell({ user }: AppShellProps) {
 
     if (!uploadResponse.ok) {
       const data = await uploadResponse.json();
-      setFeedback({ status: "error", errorMessage: data.error || "Upload fehlgeschlagen." });
+      setFeedback({ status: "error", errorMessage: data.error || t("uploadFailed") });
       return;
     }
 
     const uploadData = await uploadResponse.json();
     const submissionId = uploadData.submissionId as string;
+    setCurrentSubmissionId(submissionId);
 
     setFeedback({ status: "processing" });
     const processResponse = await fetch(`/api/submissions/${submissionId}/process`, {
-      method: "POST"
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ output_language: language }),
     });
 
     if (processResponse.ok) {
@@ -164,8 +173,31 @@ export default function AppShell({ user }: AppShellProps) {
     }
 
     const errorData = await processResponse.json();
-    setFeedback({ status: "error", errorMessage: errorData.error || "Processing fehlgeschlagen." });
+    setFeedback({ status: "error", errorMessage: errorData.error || t("processingFailed") });
   };
+
+  useEffect(() => {
+    if (
+      feedback.status !== "done" ||
+      !feedback.evaluation ||
+      !feedback.evaluations ||
+      feedback.evaluation.output_language === language
+    ) {
+      return;
+    }
+
+    const localizedEvaluation = feedback.evaluations[language];
+    if (!localizedEvaluation) {
+      return;
+    }
+
+    setFeedback((prev) => ({
+      ...prev,
+      status: "done",
+      evaluation: localizedEvaluation,
+      info: null,
+    }));
+  }, [feedback, language]);
 
   return (
     <>
@@ -173,19 +205,40 @@ export default function AppShell({ user }: AppShellProps) {
       <main className="app-shell">
         <aside className="panel stack fade-in">
           <div className="stack" style={{ gap: "8px" }}>
-            <p className="tag">Angemeldet als</p>
+            <p className="tag">{t("loggedInAs")}</p>
             <div style={{ fontWeight: 600 }}>{user.name}</div>
           </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button
+              className="btn secondary sidebar-language-toggle"
+              onClick={() => setLanguage("de")}
+              style={{
+                borderColor: language === "de" ? "var(--ink)" : "transparent",
+                color: language === "de" ? "var(--ink)" : "var(--muted)",
+              }}
+            >
+              DE
+            </button>
+            <button
+              className="btn secondary sidebar-language-toggle"
+              onClick={() => setLanguage("en")}
+              style={{
+                borderColor: language === "en" ? "var(--ink)" : "transparent",
+                color: language === "en" ? "var(--ink)" : "var(--muted)",
+              }}
+            >
+              EN
+            </button>
+          </div>
           <button
-            className="btn secondary"
+            className="btn secondary sidebar-nav-button"
             onClick={() => setActiveTab("info")}
             style={{
-              textAlign: "left",
               background: activeTab === "info" ? "var(--ink)" : "transparent",
               color: activeTab === "info" ? "#fff" : "var(--ink)"
             }}
           >
-            Informationen
+            {t("informationTab")}
           </button>
           <VideoSidebar
             videos={videos}
@@ -194,35 +247,33 @@ export default function AppShell({ user }: AppShellProps) {
             onSelect={(id) => {
               setSelectedVideoId(id);
               setAudioBlob(null);
+              setCurrentSubmissionId(null);
               setFeedback({ status: "idle" });
               setActiveTab("videos");
             }}
           />
           <button
-            className="btn secondary"
+            className="btn secondary sidebar-nav-button"
             onClick={() => setActiveTab("evaluation")}
             style={{
-              textAlign: "left",
               background: activeTab === "evaluation" ? "var(--ink)" : "transparent",
               color: activeTab === "evaluation" ? "#fff" : "var(--ink)"
             }}
           >
-            Evaluation {evaluationDone ? "✓" : ""}
+            {t("evaluationTab")} {evaluationDone ? "✓" : ""}
           </button>
           <button
-            className="btn secondary"
+            className="btn secondary sidebar-nav-button"
             onClick={() => canDownloadCertificate && setShowCertificate(true)}
             disabled={!canDownloadCertificate}
             title={
-              !canDownloadCertificate
-                ? "Bitte zuerst je eine Aufgabe pro Station auswerten und die Evaluation abschließen."
-                : undefined
+              !canDownloadCertificate ? t("certificatePendingTooltip") : undefined
             }
           >
-            Bescheinigung herunterladen
+            {t("certificateDownload")}
           </button>
-          <button className="btn secondary" onClick={handleLogout}>
-            Logout
+          <button className="btn secondary sidebar-nav-button" onClick={handleLogout}>
+            {t("logout")}
           </button>
         </aside>
         <section className="stack">
@@ -234,13 +285,13 @@ export default function AppShell({ user }: AppShellProps) {
             <>
               <div className="panel fade-in">
                 <h2 style={{ fontFamily: "var(--font-fraunces)", marginTop: 0 }}>
-                  {selectedVideo?.title || "Video auswaehlen"}
+                  {selectedVideo?.title || t("selectVideoPlaceholder")}
                 </h2>
                 <VideoPlayer url={videoUrl} />
                 <div style={{ marginTop: "20px" }} className="stack">
                   <AudioRecorder onRecordingReady={setAudioBlob} onError={setError} />
                   <button className="btn" onClick={handleProcess} disabled={feedback.status === "processing"}>
-                    Auswertung starten
+                    {t("startEvaluation")}
                   </button>
                   {error ? <p style={{ color: "#c0392b" }}>{error}</p> : null}
                 </div>

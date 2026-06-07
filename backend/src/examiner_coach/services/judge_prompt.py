@@ -1,12 +1,9 @@
 """
-Prompt builders for LLM-as-judge experiments over RAG technique outputs.
+Prompt builders for narrow LLM-as-judge checks over RAG comparison outputs.
 
-The judge receives:
-  - the original transcript
-  - retrieval metadata / evidence used by the variant
-  - the structured evaluation output produced by the generator model
-
-It returns a strict JSON rubric so we can compare variants consistently.
+The judge reads an already-generated evaluation and decides whether it matches
+the benchmark gold expectations. The goal is to confirm or question the
+direction suggested by the deterministic RAG-variant comparison.
 """
 
 from __future__ import annotations
@@ -15,36 +12,37 @@ import json
 
 
 JUDGE_RUBRIC = [
-    "transcript_faithfulness",
-    "evidence_grounding",
-    "specificity",
-    "actionability",
-    "criterion_alignment",
-    "calibration",
-    "overall_usefulness",
-    "hallucination_risk",
+    "overall_band_fit",
+    "criterion_band_fit",
+    "benchmark_expectation_match",
+    "directional_correctness",
 ]
 
 
 def judge_json_schema() -> str:
     return """{
   "scores": {
-    "transcript_faithfulness": "<integer 0-100, higher is better>",
-    "evidence_grounding": "<integer 0-100, higher is better>",
-    "specificity": "<integer 0-100, higher is better>",
-    "actionability": "<integer 0-100, higher is better>",
-    "criterion_alignment": "<integer 0-100, higher is better>",
-    "calibration": "<integer 0-100, higher is better>",
-    "overall_usefulness": "<integer 0-100, higher is better>",
-    "hallucination_risk": "<integer 0-100, lower is better>"
+    "overall_band_fit": "<integer 0-100, higher is better>",
+    "criterion_band_fit": "<integer 0-100, higher is better>",
+    "benchmark_expectation_match": "<integer 0-100, higher is better>",
+    "directional_correctness": "<integer 0-100, higher is better>"
   },
-  "strengths": [
-    "<short bullet point>"
+  "band_assessment": {
+    "overall_score_in_gold_band": "<boolean>",
+    "criteria_in_gold_band": ["<criterion_id>"],
+    "criteria_outside_gold_band": {
+      "<criterion_id>": {
+        "generated_score": "<number>",
+        "gold_band": ["<lower>", "<upper>"],
+        "direction": "<too_low|too_high>"
+      }
+    }
+  },
+  "forbidden_claim_violation": "<boolean>",
+  "missing_gold_expectations": [
+    "<short item from the gold expectations that the generated evaluation missed>"
   ],
-  "weaknesses": [
-    "<short bullet point>"
-  ],
-  "verdict": "<2-4 sentence professional judgment of this variant output>"
+  "verdict": "<1-3 sentences explaining whether this generated evaluation matches the benchmark expectations>"
 }"""
 
 
@@ -62,7 +60,7 @@ def build_judge_messages(
     generated_evaluation: dict,
 ) -> list[dict[str, str]]:
     """
-    Build a strict judge prompt for a single variant output.
+    Build a strict judge prompt for a single generated evaluation.
     """
     evidence_block = (
         json.dumps(rag_context_results, ensure_ascii=False, indent=2)
@@ -80,16 +78,14 @@ def build_judge_messages(
     quality_band_block = quality_band or "unknown"
 
     system_prompt = (
-        "You are a strict but fair evaluator of AI-generated educational feedback analyses. "
-        "Your task is to judge the quality of a generated evaluation output, not to rewrite it. "
-        "Use the transcript as primary evidence and the retrieved evidence as secondary context. "
-        "When gold benchmark expectations are provided, use them as an additional calibration anchor. "
-        "Do not reward an output for being more positive or more negative than the gold target; "
-        "reward it for matching the intended benchmark calibration. "
-        "Return JSON only. Do not add markdown. "
-        "Score each rubric dimension as an integer 0-100. "
-        "For hallucination_risk, lower is better. "
-        "Keep strengths and weaknesses concise and concrete."
+        "You are a narrow LLM-as-judge for benchmark calibration. Your only task "
+        "is to decide whether an already-generated evaluation matches the provided "
+        "gold expectations. Focus on numeric agreement with the overall gold band "
+        "and criterion-specific gold bands, plus whether the generated text captures "
+        "expected strengths, expected weaknesses, expected key suggestions, and "
+        "avoids forbidden claims. Do not judge general writing style. Do not reward "
+        "a response merely because it sounds fluent. Return JSON only. Do not add "
+        "markdown."
     )
 
     user_prompt = f"""Judge the following generated evaluation output.
@@ -119,15 +115,28 @@ Benchmark notes:
 Gold benchmark expectation:
 {gold_block}
 
+Judging rules:
+- Judge the generated overall_score against gold_expected.overall_score_band.
+- Judge each generated criterion score against gold_expected.criteria_expected.
+- A score inside its band is calibrated; do not penalize it for not being at the
+  midpoint.
+- A score outside its band is miscalibrated. Penalize larger deviations more.
+- Check whether the generated summary/suggestions reflect expected_strengths,
+  expected_weaknesses, and expected_key_suggestion.
+- Penalize any forbidden_claims that appear in the generated evaluation, even if
+  numeric scores are inside band.
+- Directional correctness means the generated evaluation places the case in the
+  right quality direction: weak cases should not look strong, strong cases should
+  not look weak, and mediocre/edge cases should remain moderate or mixed.
+
 Rubric dimensions to score:
-- transcript_faithfulness: Does the output accurately reflect what the transcript says?
-- evidence_grounding: Does the output use retrieved evidence appropriately without over-claiming?
-- specificity: Are strengths, weaknesses, and conclusions concrete rather than vague?
-- actionability: Are the suggested improvements practical and usable?
-- criterion_alignment: Does the output align with the intended six feedback-quality criteria?
-- calibration: Are the scores and judgments appropriately strict and proportionate, especially relative to the gold benchmark expectation when provided?
-- overall_usefulness: Would this output help train an examiner effectively?
-- hallucination_risk: Does the output introduce unsupported claims? Lower is better.
+- overall_band_fit: Does the generated overall_score fall within the gold overall band?
+- criterion_band_fit: Do the six generated criterion scores fall within their
+  criterion-specific gold bands?
+- benchmark_expectation_match: Does the text capture expected strengths,
+  weaknesses, key suggestions, and avoid forbidden claims?
+- directional_correctness: Is the generated evaluation directionally aligned
+  with the expected quality band ({quality_band_block}) and benchmark notes?
 
 Return exactly this JSON schema:
 {judge_json_schema()}

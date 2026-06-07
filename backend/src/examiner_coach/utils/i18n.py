@@ -1,7 +1,11 @@
 from examiner_coach.api.schemas import (
+    CoachingCitation,
+    CoachingResponse,
     CriterionResult,
     EvaluationResult,
     Language,
+    ResolvedCoachingCitation,
+    ResolvedCoachingResponse,
     ResolvedCriterionResult,
     ResolvedEvaluationResult,
 )
@@ -54,4 +58,31 @@ def resolve_evaluation_result(
             for criterion in evaluation.criteria
         ],
         key_suggestion=get_text(evaluation.key_suggestion, lang),
+    )
+
+
+def resolve_coaching_citation(
+    citation: CoachingCitation,
+    lang: Language,
+) -> ResolvedCoachingCitation:
+    return ResolvedCoachingCitation(
+        source=citation.source,
+        section=citation.section,
+        quote=get_text(citation.quote, lang) if citation.quote else None,
+        rationale=get_text(citation.rationale, lang) if citation.rationale else None,
+    )
+
+
+def resolve_coaching_response(
+    coaching: CoachingResponse,
+    lang: Language = Language.DE,
+) -> ResolvedCoachingResponse:
+    return ResolvedCoachingResponse(
+        output_language=lang,
+        answer=get_text(coaching.answer, lang),
+        citations=[
+            resolve_coaching_citation(citation, lang)
+            for citation in coaching.citations
+        ],
+        updated_session_summary=coaching.updated_session_summary,
     )

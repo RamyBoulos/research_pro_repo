@@ -2,14 +2,32 @@ import { NextResponse } from "next/server";
 import { getSubmission, readAudioBuffer, updateSubmission } from "@/lib/localStore";
 import { getSessionToken } from "@/lib/session";
 import { getUserForSession } from "@/lib/auth";
-import type { ResolvedEvaluationResult, TranscriptionResponse } from "@/types/evaluation";
+import type {
+  EvaluationLanguageBundle,
+  EvaluationResult,
+  Language,
+  ResolvedCriterionResult,
+  ResolvedEvaluationResult,
+  TranscriptionResponse,
+} from "@/types/evaluation";
 
 const FASTAPI_BASE_URL = (process.env.FASTAPI_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 const DEFAULT_OUTPUT_LANGUAGE = "de";
+const SUPPORTED_LANGUAGES = new Set<Language>(["de", "en"]);
+
+async function readErrorDetail(response: Response, fallback: string): Promise<string> {
+  try {
+    const data = await response.json() as { detail?: string; error?: string };
+    return data.detail || data.error || fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 async function transcribeWithBackend(audioBuffer: Buffer): Promise<TranscriptionResponse> {
   const formData = new FormData();
-  formData.append("audio", new Blob([audioBuffer], { type: "audio/webm" }), "recording.webm");
+  const audioArrayBuffer = new Uint8Array(Array.from(audioBuffer)).buffer;
+  formData.append("audio", new Blob([audioArrayBuffer], { type: "audio/webm" }), "recording.webm");
 
   const response = await fetch(`${FASTAPI_BASE_URL}/api/transcribe`, {
     method: "POST",
@@ -17,7 +35,11 @@ async function transcribeWithBackend(audioBuffer: Buffer): Promise<Transcription
   });
 
   if (!response.ok) {
-    throw new Error(`Backend transcription failed: ${response.status}`);
+    const detail = await readErrorDetail(
+      response,
+      `Backend transcription failed: ${response.status}`
+    );
+    throw new Error(detail);
   }
 
   return response.json() as Promise<TranscriptionResponse>;
@@ -26,8 +48,8 @@ async function transcribeWithBackend(audioBuffer: Buffer): Promise<Transcription
 async function evaluateWithBackend(
   transcript: string,
   durationSeconds: number
-): Promise<ResolvedEvaluationResult> {
-  const response = await fetch(`${FASTAPI_BASE_URL}/api/evaluate`, {
+): Promise<EvaluationLanguageBundle> {
+  const response = await fetch(`${FASTAPI_BASE_URL}/api/evaluate/full`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -40,17 +62,69 @@ async function evaluateWithBackend(
   });
 
   if (!response.ok) {
-    throw new Error(`Backend evaluation failed: ${response.status}`);
+    const detail = await readErrorDetail(
+      response,
+      `Backend evaluation failed: ${response.status}`
+    );
+    throw new Error(detail);
   }
 
-  return response.json() as Promise<ResolvedEvaluationResult>;
+  const evaluation = await response.json() as EvaluationResult;
+  return {
+    de: resolveEvaluationResult(evaluation, "de"),
+    en: resolveEvaluationResult(evaluation, "en"),
+  };
+}
+
+function resolveText(content: Record<Language, string>, language: Language) {
+  return content[language] ?? content.en;
+}
+
+function resolveCriterionResult(
+  criterion: EvaluationResult["criteria"][number],
+  language: Language
+): ResolvedCriterionResult {
+  return {
+    criterion_id: criterion.criterion_id,
+    label: resolveText(criterion.label, language),
+    score_percent: criterion.score_percent,
+    suggestion: resolveText(criterion.suggestion, language),
+    quote: criterion.quote ? resolveText(criterion.quote, language) : null,
+  };
+}
+
+function resolveEvaluationResult(
+  evaluation: EvaluationResult,
+  language: Language
+): ResolvedEvaluationResult {
+  return {
+    output_language: language,
+    transcript: evaluation.transcript,
+    duration_seconds: evaluation.duration_seconds,
+    overall_score: evaluation.overall_score,
+    summary: resolveText(evaluation.summary, language),
+    criteria_met: evaluation.criteria_met,
+    total_criteria: evaluation.total_criteria,
+    criteria: evaluation.criteria.map((criterion) => resolveCriterionResult(criterion, language)),
+    key_suggestion: resolveText(evaluation.key_suggestion, language),
+  };
 }
 
 interface Params {
   params: Promise<{ id: string }> | { id: string };
 }
 
-export async function POST(_: Request, { params }: Params) {
+export async function POST(request: Request, { params }: Params) {
+  let outputLanguage: Language = DEFAULT_OUTPUT_LANGUAGE;
+  try {
+    const body = await request.json() as { output_language?: unknown };
+    if (typeof body.output_language === "string" && SUPPORTED_LANGUAGES.has(body.output_language as Language)) {
+      outputLanguage = body.output_language as Language;
+    }
+  } catch {
+    outputLanguage = DEFAULT_OUTPUT_LANGUAGE;
+  }
+
   const { id } = await params;
   const user = await getUserForSession(await getSessionToken());
   if (!user) {
@@ -62,6 +136,12 @@ export async function POST(_: Request, { params }: Params) {
   }
 
   if (submission.status === "done") {
+    if (submission.evaluations?.[outputLanguage]) {
+      await updateSubmission(submission.id, {
+        evaluation: submission.evaluations[outputLanguage],
+        error_message: null,
+      });
+    }
     return NextResponse.json({ status: "done" });
   }
 
@@ -70,20 +150,22 @@ export async function POST(_: Request, { params }: Params) {
   try {
     const audioBuffer = await readAudioBuffer(submission.audio_path);
     const { transcript, duration_seconds } = await transcribeWithBackend(audioBuffer);
-    const evaluation = await evaluateWithBackend(transcript, duration_seconds);
+    const evaluations = await evaluateWithBackend(transcript, duration_seconds);
 
     await updateSubmission(submission.id, {
       status: "done",
       transcript,
-      evaluation,
+      evaluation: evaluations[outputLanguage],
+      evaluations,
       error_message: null
     });
 
     return NextResponse.json({ status: "done" });
   } catch (err: any) {
+    const message = err?.message || "Processing failed";
     console.error("Submission processing failed", {
       submissionId: submission.id,
-      error: err?.message || err
+      error: message
     });
     if (err?.name === "AbortError") {
       return NextResponse.json({ status: "processing" }, { status: 202 });
@@ -91,9 +173,9 @@ export async function POST(_: Request, { params }: Params) {
 
     await updateSubmission(submission.id, {
       status: "error",
-      error_message: "Processing failed"
+      error_message: message
     });
 
-    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 """
 Run controlled RAG-technique comparisons on a fixed benchmark set and save the
-full outputs for later LLM judging.
+full outputs for benchmark-based review.
 
 Usage:
     PYTHONPATH=backend/src python backend/scripts/compare_rag_variants.py

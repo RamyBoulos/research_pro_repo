@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/lib/LanguageProvider";
+
 export interface VideoItem {
   id: string;
   title: string;
@@ -15,12 +17,13 @@ interface VideoSidebarProps {
 }
 
 export default function VideoSidebar({ videos, selectedId, completedIds, onSelect }: VideoSidebarProps) {
+  const { t } = useLanguage();
   const categories = [...new Set(videos.map((v) => v.category))];
 
   return (
     <div className="stack">
       {categories.length === 0 ? (
-        <p style={{ color: "var(--muted)" }}>Keine Videos vorhanden.</p>
+        <p style={{ color: "var(--muted)" }}>{t("noVideos")}</p>
       ) : null}
       {categories.map((cat) => {
         const catVideos = videos.filter((v) => v.category === cat);
@@ -35,9 +38,8 @@ export default function VideoSidebar({ videos, selectedId, completedIds, onSelec
                 <button
                   key={video.id}
                   onClick={() => onSelect(video.id)}
-                  className="btn secondary"
+                  className="btn secondary sidebar-nav-button"
                   style={{
-                    textAlign: "left",
                     background: selectedId === video.id ? "var(--ink)" : "transparent",
                     color: selectedId === video.id ? "#fff" : "var(--ink)"
                   }}

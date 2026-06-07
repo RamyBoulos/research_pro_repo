@@ -1,16 +1,18 @@
 "use client";
 
+import { useLanguage } from "@/lib/LanguageProvider";
+
 export default function InfoPanel() {
+  const { t } = useLanguage();
+
   return (
     <div className="panel fade-in stack">
       <h2 style={{ fontFamily: "var(--font-fraunces)", marginTop: 0 }}>
-        Willkommen zur Prüferschulung
+        {t("infoWelcomeTitle")}
       </h2>
 
       <p style={{ color: "var(--muted)", fontSize: "15px", lineHeight: 1.6 }}>
-        Diese Schulung unterstützt Sie dabei, strukturiertes und qualitativ hochwertiges
-        Feedback im Rahmen von OSCE-Prüfungen zu geben. Bitte lesen Sie die folgenden
-        Hinweise sorgfältig durch, bevor Sie beginnen.
+        {t("infoIntro")}
       </p>
 
       <div style={{
@@ -21,64 +23,35 @@ export default function InfoPanel() {
         fontSize: "14px",
         lineHeight: 1.6
       }}>
-        <strong>Ihre Aufgabe:</strong> Bearbeiten Sie <strong>je ein Video</strong> aus den beiden Stationen:
-        <ul style={{ marginTop: "8px", marginBottom: 0, paddingLeft: "20px", lineHeight: 1.8 }}>
-          <li><strong>Kommunikationsstation</strong> – wählen Sie eines der verfügbaren Videos</li>
-          <li><strong>Blutentnahme</strong> – wählen Sie eines der verfügbaren Videos</li>
-        </ul>
-        Für jedes dieser Videos nehmen Sie Ihr mündliches Feedback auf und starten die Auswertung.
-        Erst wenn beide Stationen abgeschlossen und die Evaluation ausgefüllt sind, können Sie Ihre Teilnahmebescheinigung herunterladen.
+        <strong>{t("infoTaskHeading")}</strong> {t("infoTaskDescription")}
       </div>
 
       <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "4px 0" }} />
 
       <div className="stack" style={{ gap: "20px" }}>
-        <Step number={1} title="Video auswählen und anschauen">
-          Wählen Sie im linken Menü <strong>je ein Video</strong> pro Station (Kommunikationsstation
-          und Blutentnahme) aus und schauen Sie es vollständig an. Die Videos zeigen reale
-          Prüfungssituationen aus dem OSCE-Format. Achten Sie dabei besonders auf das gezeigte
-          Verhalten und die Interaktion zwischen Prüfer und Kandidat.
-        </Step>
-
-        <Step number={2} title="Mündliches Feedback aufnehmen">
-          Nehmen Sie anschließend Ihr mündliches Feedback zu dem Video auf. Drücken Sie dazu
-          auf „Aufnahme starten" und sprechen Sie Ihr Feedback frei ein. Orientieren Sie sich
-          dabei an den Prinzipien für konstruktives Feedback:
+        <Step number={1} title={t("infoStep1Title")}>{t("infoStep1")}</Step>
+        <Step number={2} title={t("infoStep2Title")}>
+          {t("infoStep2")}
           <ul style={{ marginTop: "8px", paddingLeft: "20px", lineHeight: 1.8 }}>
-            <li>Ich-Botschaften verwenden</li>
-            <li>Konkrete Beobachtungen benennen</li>
-            <li>Beobachtung und Interpretation trennen</li>
-            <li>Zukunftsorientierte Empfehlungen geben</li>
+            <li>{t("infoStep2List1")}</li>
+            <li>{t("infoStep2List2")}</li>
+            <li>{t("infoStep2List3")}</li>
+            <li>{t("infoStep2List4")}</li>
           </ul>
         </Step>
-
-        <Step number={3} title="Auswertung starten">
-          Klicken Sie auf „Auswertung starten", um Ihre Aufnahme zu verarbeiten. Das System
-          analysiert Ihr Feedback anhand festgelegter Qualitätskriterien und gibt Ihnen eine
-          detaillierte Rückmeldung zu Ihrer Feedbackqualität.
+        <Step number={3} title={t("infoStep3Title")}>
+          {t("infoStep3")}
           <br /><br />
-          <strong>Datenschutzhinweis:</strong> Ihre Audioaufnahmen werden ausschließlich auf
-          lokalen Servern des EKFZ (Else Kröner Fresenius Zentrum für Digitale Gesundheit) mit
-          lokal betriebenen Sprachmodellen verarbeitet. Eine Weitergabe an Dritte oder externe
-          Dienste findet nicht statt.
+          <strong>{t("infoPrivacyHeading")}</strong> {t("infoStep3Privacy")}
         </Step>
-
-        <Step number={4} title="Evaluation ausfüllen">
-          Wechseln Sie nach der Auswertung zum Bereich „Evaluation" und beantworten Sie bitte
-          alle Fragen zu Ihrer Erfahrung. Ihre Angaben sind anonym und werden ausschließlich
-          für wissenschaftliche Zwecke verwendet.
-        </Step>
-
-        <Step number={5} title="Bescheinigung herunterladen">
-          Nach Abschluss der Schulung können Sie sich über „Bescheinigung herunterladen" eine
-          Teilnahmebescheinigung für die Prüferschulung ausstellen lassen.
-        </Step>
+        <Step number={4} title={t("infoStep4Title")}>{t("infoStep4")}</Step>
+        <Step number={5} title={t("infoStep5Title")}>{t("infoStep5")}</Step>
       </div>
 
       <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "4px 0" }} />
 
       <p style={{ fontSize: "13px", color: "var(--muted)", lineHeight: 1.6 }}>
-        Bei technischen Problemen oder Fragen wenden Sie sich bitte an die Studienleitung.
+        {t("infoFooter")}
       </p>
     </div>
   );

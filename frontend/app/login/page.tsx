@@ -2,9 +2,11 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/lib/LanguageProvider";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [step, setStep] = useState<"code" | "name">("code");
   const [accessCode, setAccessCode] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -22,14 +24,13 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accessCode })
       });
-      const data = await response.json();
       if (!response.ok) {
-        setError(data.error || "Ungültiger Zugangscode.");
+        setError(t("loginInvalidCode"));
         return;
       }
       setStep("name");
     } catch {
-      setError("Unerwarteter Fehler.");
+      setError(t("loginUnexpectedError"));
     } finally {
       setLoading(false);
     }
@@ -45,14 +46,13 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accessCode, firstName: firstName.trim(), lastName: lastName.trim() })
       });
-      const data = await response.json();
       if (!response.ok) {
-        setError(data.error || "Login fehlgeschlagen.");
+        setError(response.status === 401 ? t("loginInvalidCode") : t("loginFailed"));
         return;
       }
       router.push("/app");
     } catch {
-      setError("Unerwarteter Fehler beim Login.");
+      setError(t("loginUnexpectedLoginError"));
     } finally {
       setLoading(false);
     }
@@ -65,19 +65,19 @@ export default function LoginPage() {
           <div>
             <p className="tag">OSCE Feedback</p>
             <h1 style={{ fontFamily: "var(--font-fraunces)", fontSize: "32px", margin: "12px 0 0" }}>
-              {step === "code" ? "Zugangscode" : "Ihr Name"}
+              {step === "code" ? t("loginAccessCode") : t("loginYourName")}
             </h1>
             <p style={{ color: "var(--muted)" }}>
               {step === "code"
-                ? "Bitte geben Sie Ihren persönlichen Zugangscode ein."
-                : "Bitte geben Sie Ihren Namen ein. Er erscheint auf der Teilnahmebescheinigung."}
+                ? t("loginAccessCodePrompt")
+                : t("loginNamePrompt")}
             </p>
           </div>
 
           {step === "code" ? (
             <form className="stack" onSubmit={handleCodeSubmit}>
               <label className="stack" style={{ gap: "6px" }}>
-                <span>Zugangscode</span>
+                <span>{t("loginAccessCode")}</span>
                 <input
                   type="password"
                   required
@@ -88,13 +88,13 @@ export default function LoginPage() {
               </label>
               {error ? <p style={{ color: "#c0392b" }}>{error}</p> : null}
               <button className="btn" type="submit" disabled={loading}>
-                {loading ? "Prüfe..." : "Weiter"}
+                {loading ? t("loginChecking") : t("loginContinue")}
               </button>
             </form>
           ) : (
             <form className="stack" onSubmit={handleNameSubmit}>
               <label className="stack" style={{ gap: "6px" }}>
-                <span>Vorname</span>
+                <span>{t("loginFirstName")}</span>
                 <input
                   type="text"
                   required
@@ -105,7 +105,7 @@ export default function LoginPage() {
                 />
               </label>
               <label className="stack" style={{ gap: "6px" }}>
-                <span>Nachname</span>
+                <span>{t("loginLastName")}</span>
                 <input
                   type="text"
                   required
@@ -116,14 +116,14 @@ export default function LoginPage() {
               </label>
               {error ? <p style={{ color: "#c0392b" }}>{error}</p> : null}
               <button className="btn" type="submit" disabled={loading}>
-                {loading ? "Anmelden..." : "Anmelden"}
+                {loading ? t("loginSigningIn") : t("loginSignIn")}
               </button>
               <button
                 type="button"
                 className="btn secondary"
                 onClick={() => { setStep("code"); setError(null); }}
               >
-                Zurück
+                {t("loginBack")}
               </button>
             </form>
           )}

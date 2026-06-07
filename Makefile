@@ -1,7 +1,12 @@
-.PHONY: dev sync test lint ingest reset-vectors
+.PHONY: dev backend-dev frontend-dev sync test lint ingest reset-vectors
 
-dev:
-	PYTHONPATH=backend/src uvicorn examiner_coach.main:app --reload
+dev: backend-dev
+
+backend-dev:
+	PYTHONPATH=backend/src .venv/bin/uvicorn examiner_coach.main:app --reload --port 8000
+
+frontend-dev:
+	npm --prefix frontend run dev
 
 sync:
 	uv sync
