@@ -37,8 +37,10 @@ build/
 # Local chunk-debug artifacts
 debug/
 
-# Archived placeholder frontend kept only for reference
+# Archived frontend directories
 frontend_old/
 
-# Stale old frontend path / local Next.js cache after rename
 frontend_upstream/
+
+# External reference implementations
+OSCE_ExaminerTeaching-main/

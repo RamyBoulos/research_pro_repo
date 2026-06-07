@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/lib/LanguageProvider";
+import { localizeVideoCategory, localizeVideoTitle } from "@/lib/videoLabels";
 
 export interface VideoItem {
   id: string;
@@ -17,7 +18,7 @@ interface VideoSidebarProps {
 }
 
 export default function VideoSidebar({ videos, selectedId, completedIds, onSelect }: VideoSidebarProps) {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const categories = [...new Set(videos.map((v) => v.category))];
 
   return (
@@ -31,7 +32,7 @@ export default function VideoSidebar({ videos, selectedId, completedIds, onSelec
         return (
           <div key={cat} className="stack" style={{ gap: "8px" }}>
             <h3 style={{ margin: 0, fontSize: "13px", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              {catDone ? "✓ " : ""}{cat}
+              {catDone ? "✓ " : ""}{localizeVideoCategory(cat, language)}
             </h3>
             <div className="stack" style={{ gap: "6px" }}>
               {catVideos.map((video) => (
@@ -44,7 +45,7 @@ export default function VideoSidebar({ videos, selectedId, completedIds, onSelec
                     color: selectedId === video.id ? "#fff" : "var(--ink)"
                   }}
                 >
-                  {completedIds.includes(video.id) ? "✓ " : ""}{video.title}
+                  {completedIds.includes(video.id) ? "✓ " : ""}{localizeVideoTitle(video, language)}
                 </button>
               ))}
             </div>

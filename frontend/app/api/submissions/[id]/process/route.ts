@@ -15,6 +15,14 @@ const FASTAPI_BASE_URL = (process.env.FASTAPI_BASE_URL ?? "http://127.0.0.1:8000
 const DEFAULT_OUTPUT_LANGUAGE = "de";
 const SUPPORTED_LANGUAGES = new Set<Language>(["de", "en"]);
 
+async function fetchBackend(input: string, init: RequestInit) {
+  try {
+    return await fetch(input, init);
+  } catch (error) {
+    throw new Error(`Backend service is not reachable at ${FASTAPI_BASE_URL}. Start it with "make backend-dev".`);
+  }
+}
+
 async function readErrorDetail(response: Response, fallback: string): Promise<string> {
   try {
     const data = await response.json() as { detail?: string; error?: string };
@@ -29,7 +37,7 @@ async function transcribeWithBackend(audioBuffer: Buffer): Promise<Transcription
   const audioArrayBuffer = new Uint8Array(Array.from(audioBuffer)).buffer;
   formData.append("audio", new Blob([audioArrayBuffer], { type: "audio/webm" }), "recording.webm");
 
-  const response = await fetch(`${FASTAPI_BASE_URL}/api/transcribe`, {
+  const response = await fetchBackend(`${FASTAPI_BASE_URL}/api/transcribe`, {
     method: "POST",
     body: formData
   });
@@ -49,7 +57,7 @@ async function evaluateWithBackend(
   transcript: string,
   durationSeconds: number
 ): Promise<EvaluationLanguageBundle> {
-  const response = await fetch(`${FASTAPI_BASE_URL}/api/evaluate/full`, {
+  const response = await fetchBackend(`${FASTAPI_BASE_URL}/api/evaluate/full`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

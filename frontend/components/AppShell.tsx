@@ -8,7 +8,9 @@ import VideoSidebar, { VideoItem } from "./VideoSidebar";
 import EvaluationPanel from "./EvaluationPanel";
 import CertificateModal from "./CertificateModal";
 import InfoPanel from "./InfoPanel";
+import FeedbackFocus from "./FeedbackFocus";
 import { useLanguage } from "@/lib/LanguageProvider";
+import { localizeVideoTitle } from "@/lib/videoLabels";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 60000;
@@ -285,9 +287,10 @@ export default function AppShell({ user }: AppShellProps) {
             <>
               <div className="panel fade-in">
                 <h2 style={{ fontFamily: "var(--font-fraunces)", marginTop: 0 }}>
-                  {selectedVideo?.title || t("selectVideoPlaceholder")}
+                  {selectedVideo ? localizeVideoTitle(selectedVideo, language) : t("selectVideoPlaceholder")}
                 </h2>
                 <VideoPlayer url={videoUrl} />
+                {selectedVideo?.category ? <FeedbackFocus category={selectedVideo.category} /> : null}
                 <div style={{ marginTop: "20px" }} className="stack">
                   <AudioRecorder onRecordingReady={setAudioBlob} onError={setError} />
                   <button className="btn" onClick={handleProcess} disabled={feedback.status === "processing"}>

@@ -1,16 +1,16 @@
 [
   {
     "id": "osce-1",
-    "title": "Kommunikationsstation 1",
+    "title": "Anamnese und Untersuchung 1",
     "order_index": 1,
-    "category": "Kommunikationsstation",
+    "category": "Anamnese und Untersuchung",
     "storage_key": "Kommunikationsstation1.MOV"
   },
   {
     "id": "osce-3",
-    "title": "Kommunikationsstation 2",
+    "title": "Anamnese und Untersuchung 2",
     "order_index": 2,
-    "category": "Kommunikationsstation",
+    "category": "Anamnese und Untersuchung",
     "storage_key": "Kommunikationsstation2.MOV"
   },
   {

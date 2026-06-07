@@ -82,6 +82,23 @@ export default function EvaluationPanel({ onComplete }: EvaluationPanelProps) {
         </span>
       </div>
 
+      {step === 0 ? (
+        <p
+          style={{
+            fontSize: "13px",
+            color: "var(--muted)",
+            lineHeight: 1.6,
+            margin: "0 0 4px",
+            padding: "12px 14px",
+            background: "rgba(0,0,140,0.05)",
+            borderRadius: "10px",
+            border: "1px solid rgba(0,0,140,0.12)",
+          }}
+        >
+          {t("evaluationIntro")}
+        </p>
+      ) : null}
+
       <p style={{ fontSize: "16px", fontWeight: 500, margin: "8px 0 20px" }}>{question.text}</p>
 
       {question.type === "likert" && (
