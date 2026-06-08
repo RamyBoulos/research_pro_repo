@@ -49,9 +49,9 @@ Typical local files include:
 
 - `data/users.json`: configured access-code records.
 - `data/sessions.json`: local session records.
-- `data/submissions.json`: submission metadata, status, transcript, and
-  evaluation result.
-- `data/audio/`: uploaded audio recordings saved as local files.
+- `data/submissions.json`: submission metadata, status, transcript, evaluation
+  result, and the audio path while audio is retained.
+- `data/audio/`: uploaded audio recordings saved temporarily for processing.
 - `data/videos.json`: local video metadata.
 
 The backend stores the processed retrieval index under:
@@ -94,15 +94,18 @@ be checked for the concrete deployment.
 
 ## Retention and Deletion
 
-The current prototype does not implement an automated retention policy.
+The current implementation deletes a submission audio file after successful
+transcription and evaluation. If processing fails, the audio file is retained
+with the failed submission so the request can be retried or inspected.
 
-Locally stored data remains present until it is manually deleted or the
-deployment environment removes it. This includes uploaded audio recordings,
-submission metadata, transcripts, and evaluation results.
+Other locally stored data remains present until it is manually deleted or the
+deployment environment removes it. This includes session metadata, submission
+metadata, transcripts, evaluation results, questionnaire responses, and failed
+submission audio.
 
 For production or study deployment, a retention policy should define:
 
-- How long audio recordings are kept.
+- How long failed-submission audio recordings are kept.
 - How long transcripts and evaluations are kept.
 - Who can access local storage.
 - How participant withdrawal or deletion requests are handled.

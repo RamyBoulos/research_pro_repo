@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 
-
 JUDGE_RUBRIC = [
     "overall_band_fit",
     "criterion_band_fit",
@@ -42,7 +41,7 @@ def judge_json_schema() -> str:
   "missing_gold_expectations": [
     "<short item from the gold expectations that the generated evaluation missed>"
   ],
-  "verdict": "<1-3 sentences explaining whether this generated evaluation matches the benchmark expectations>"
+  "verdict": "<1-3 sentences explaining benchmark expectation fit>"
 }"""
 
 

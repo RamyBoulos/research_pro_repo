@@ -2,7 +2,20 @@
 
 Examiner Coach is an OSCE feedback training system. It records
 spoken examiner feedback, transcribes it, evaluates the feedback against a
-structured rubric, and supports follow-up coaching with evidence retrieved from a local knowledge base.
+structured rubric, and supports bilingual follow-up coaching with evidence
+retrieved from a local knowledge base.
+
+## Key Features
+
+- Audio-based OSCE examiner feedback practice with automatic transcription.
+- Structured feedback-quality evaluation against six explicit criteria.
+- Interactive coaching chat that lets examiners ask follow-up questions,
+  request clearer wording, and understand why feedback was scored the way it
+  was.
+- Evidence-grounded coaching and evaluation using retrieved guidance from a
+  local ChromaDB knowledge base.
+- Bilingual German/English output for evaluation results, coaching answers,
+  criterion labels, suggestions, and certificate-facing UI text.
 
 ## What the System Does
 
@@ -15,8 +28,11 @@ The application supports a typical examiner training workflow:
 5. Relevant educational guidance is retrieved from a ChromaDB knowledge base.
 6. The LLM returns a structured evaluation with scores, suggestions, and a key
    improvement point.
-7. The learner can ask follow-up coaching questions based on the transcript and
-   evaluation.
+7. The learner can switch between German and English result views without
+   regenerating the evaluation.
+8. The learner can use the coaching chat to ask follow-up questions, request
+   stronger feedback formulations, and receive evidence-grounded explanations
+   based on the transcript and evaluation.
 
 ## Backend
 
@@ -39,7 +55,7 @@ The most important backend modules are:
 - `services/evaluation_prompt.py`: feedback-quality rubric, scoring anchors,
   prompt contract, and score aggregation helpers.
 - `services/coaching_prompt.py`: structured coaching prompt construction for
-  multi-turn follow-up support.
+  multi-turn, bilingual follow-up support.
 - `services/document_manager.py`: knowledge-base ingestion, chunking,
   embedding, and indexing.
 - `db/vector_store.py`: ChromaDB collection access, queries, upserts, deletes,
@@ -68,22 +84,25 @@ Frontend audio recording
   -> Next.js submission API
   -> FastAPI /api/transcribe
   -> KISSKI/SAIA transcription endpoint
-  -> FastAPI /api/evaluate
+  -> FastAPI /api/evaluate/full
   -> ChromaDB retrieval
   -> LLM evaluation
-  -> structured backend response
+  -> structured bilingual backend response
   -> frontend result display
 ```
 
-Coaching uses a similar backend path:
+The coaching chat uses a similar evidence-grounded backend path:
 
 ```text
 Frontend coaching question
   -> FastAPI /api/coach
   -> evidence retrieval
-  -> coaching prompt
-  -> structured coaching response
+  -> bilingual coaching prompt
+  -> structured coaching response with updated session summary
 ```
+
+The backend keeps canonical evaluation and coaching content bilingual where
+needed, then resolves the requested display language for the frontend.
 
 ## Repository Layout
 
@@ -107,6 +126,7 @@ Generated caches, legacy frontend copies, and notebook experiments are not part 
 - Node.js and npm for the frontend
 - Access to the configured KISSKI/SAIA services
 - A populated `.env` file based on `.env.example`
+- A frontend `.env.local` file based on `frontend/.env.local.example`
 
 Important backend environment variables:
 
@@ -114,7 +134,8 @@ Important backend environment variables:
 KISSKI_API_KEY=...
 KISSKI_BASE_URL=https://chat-ai.academiccloud.de/v1
 KISSKI_VOICE_BASE_URL=https://saia.gwdg.de/v1
-KISSKI_LLM_MODEL=llama-3.3-70b-instruct
+KISSKI_LLM_MODEL=meta-llama-3.1-8b-instruct
+KISSKI_JUDGE_MODEL=gpt-oss-120b
 KISSKI_EMBEDDING_MODEL=multilingual-e5-large-instruct
 KISSKI_VOICE_MODEL=whisper-large-v2
 KNOWLEDGE_BASE_DIR=knowledge_base/raw
@@ -122,7 +143,11 @@ VECTOR_DB_DIR=knowledge_base/processed
 REGISTRY_PATH=knowledge_base/registry.json
 APP_ENV=development
 LOG_LEVEL=INFO
+CORS_ORIGINS=
 ```
+
+For production, set `APP_ENV=production` and configure `CORS_ORIGINS` as a
+comma-separated list of deployed frontend origins.
 
 ## Local Development
 
@@ -215,7 +240,9 @@ by document structure, embeds chunks, stores them in ChromaDB, and updates the k
 
 ## Frontend Setup
 
-The frontend is located in `frontend/`. It provides the training interface and proxies processing requests to the FastAPI backend.
+The frontend is located in `frontend/`. It provides the training interface,
+language switcher, bilingual result display, coaching chat, questionnaire flow,
+certificate download, and processing proxies to the FastAPI backend.
 
 ```bash
 cd frontend
@@ -236,6 +263,14 @@ running on the default local address:
 FASTAPI_BASE_URL=http://127.0.0.1:8000
 ```
 
+Useful frontend verification commands:
+
+```bash
+cd frontend
+npm run typecheck
+npm run build
+```
+
 Further frontend-specific notes are available in
 [frontend/README.md](frontend/README.md).
 
@@ -244,15 +279,109 @@ Further frontend-specific notes are available in
 From the repository root:
 
 ```bash
-make dev            # Start the FastAPI backend on port 8000
-make backend-dev    # Same as make dev
-make frontend-dev   # Start the Next.js frontend
-make sync           # Install/sync Python dependencies
-make test           # Run backend tests
-make lint           # Run Ruff on backend source
-make ingest         # Ingest knowledge-base documents
-make reset-vectors  # Clear the ChromaDB vector store
+make dev                   # Start the FastAPI backend on port 8000
+make backend-dev           # Same as make dev
+make frontend-dev          # Start the Next.js frontend
+make sync                  # Install/sync Python dependencies
+make test                  # Run backend tests
+make lint                  # Run Ruff on backend source
+make ingest                # Ingest knowledge-base documents
+make reset-vectors         # Clear the ChromaDB vector store
+
+# RAG comparison targets create compare_*.json experiment outputs.
+make compare-rag           # Generic comparison target with overridable options
+make compare-rag-core      # Smaller/faster comparison benchmark
+make compare-rag-extended  # Broader comparison benchmark
+
+# RAG judge targets read compare_*.json outputs and create judged_*.json files.
+make judge-rag COMPARE=debug/rag_eval_results/compare_....json
+make judge-rag-latest      # Judge the newest saved comparison output
 ```
+
+## RAG Comparison and Judge Workflow
+
+The repository includes tracked benchmark and evaluation scripts for comparing
+RAG configurations and then judging the generated outputs with a separate judge
+model:
+
+- `backend/data/rag_eval_benchmark.json`: fixed benchmark transcripts and gold
+  expectation bands.
+- `backend/scripts/compare_rag_variants.py`: runs the benchmark across multiple
+  retrieval configurations and writes a comparison JSON file.
+- `backend/scripts/judge_rag_outputs.py`: reads a comparison JSON file and asks
+  the configured judge model to score each generated evaluation.
+
+The Makefile intentionally separates this into two stages:
+
+1. **Comparison targets** (`make compare-rag*`) generate `compare_*.json`
+   files by running benchmark transcripts through different retrieval
+   configurations.
+2. **Judge targets** (`make judge-rag*`) read a saved `compare_*.json` file
+   and generate a `judged_*.json` file with judge-model scores.
+
+Generated comparison and judge outputs are written under
+`debug/rag_eval_results/` by default. That directory is intentionally ignored so
+large or repeated experiment outputs are not committed; the responsible scripts
+and benchmark data are tracked.
+
+Run the smaller comparison set:
+
+```bash
+make compare-rag-core
+```
+
+This compares no-RAG, direct RAG, unfiltered direct RAG, HyDE, and unfiltered
+HyDE variants.
+
+Run the broader comparison set:
+
+```bash
+make compare-rag-extended
+```
+
+This includes the core variants plus additional `k=4`, `k=12`, and
+no-translation retrieval variants.
+
+Run a custom comparison:
+
+```bash
+make compare-rag VARIANT_SET=extended \
+  RAG_BENCHMARK=backend/data/rag_eval_benchmark.json \
+  RAG_OUTPUT=debug/rag_eval_results/compare_custom.json
+```
+
+The same options are exposed as Makefile variables:
+
+- `VARIANT_SET`: `core` or `extended`; defaults to `core`.
+- `RAG_BENCHMARK`: benchmark JSON path; defaults to
+  `backend/data/rag_eval_benchmark.json`.
+- `RAG_OUTPUT`: optional explicit comparison output path.
+
+Judge a specific comparison output:
+
+```bash
+make judge-rag COMPARE=debug/rag_eval_results/compare_custom.json
+```
+
+Judge the newest comparison output:
+
+```bash
+make judge-rag-latest
+```
+
+The judge target resumes by default with `--resume`. Pass additional judge
+options through `JUDGE_ARGS`, for example:
+
+```bash
+make judge-rag COMPARE=debug/rag_eval_results/compare_custom.json \
+  JUDGE_ARGS="--resume --rate-limit-sleep 60"
+```
+
+Judge-related Makefile variables:
+
+- `COMPARE`: required for `make judge-rag`; path to a saved `compare_*.json`.
+- `JUDGE_OUTPUT`: optional explicit judged output path.
+- `JUDGE_ARGS`: extra flags for the judge script; defaults to `--resume`.
 
 ## Tests
 
@@ -273,12 +402,15 @@ Active backend endpoints:
 - `POST /api/transcribe`: accepts an audio file and returns transcript plus
   duration.
 - `POST /api/evaluate`: evaluates a transcript using the RAG pipeline.
-- `POST /api/coach`: provides follow-up coaching based on transcript,
-  evaluation, conversation history, and retrieved evidence.
+- `POST /api/coach`: provides bilingual follow-up coaching based on transcript,
+  evaluation, conversation history, retrieved evidence, and the requested
+  output language.
 
 ## Current Boundaries
 
 - The frontend stores sessions, submissions, and uploaded audio locally.
+- Uploaded audio is retained locally only until successful processing; failed
+  submissions keep the audio file so the request can be retried or inspected.
 - Knowledge-base management is script-driven rather than exposed through the
   active HTTP API.
 - The backend depends on external KISSKI/SAIA services for transcription,
@@ -293,4 +425,4 @@ Active backend endpoints:
 - [docs/data_privacy.md](docs/data_privacy.md): data privacy notes.
 - [docs/fpq_instrument.md](docs/fpq_instrument.md): feedback questionnaire or
   instrument notes.
-- [frontend/README.md](frontend/README.md): frontend setup and MVP notes.
+- [frontend/README.md](frontend/README.md): frontend setup and deployment notes.

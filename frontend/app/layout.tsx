@@ -1,19 +1,6 @@
 import type { Metadata } from "next";
-import { Fraunces, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/LanguageProvider";
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  display: "swap"
-});
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  display: "swap"
-});
 
 export const metadata: Metadata = {
   title: "OSCE Feedback",
@@ -23,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de">
-      <body className={`${spaceGrotesk.className} ${fraunces.variable}`}>
+      <body>
         <header style={{
           background: "#00008c",
           padding: "12px 32px",

@@ -26,7 +26,7 @@ export interface SubmissionRecord {
   evaluation?: ResolvedEvaluationResult | null;
   evaluations?: EvaluationLanguageBundle | null;
   error_message?: string | null;
-  audio_path: string;
+  audio_path: string | null;
   created_at: string;
 }
 
@@ -110,4 +110,14 @@ export async function updateSubmission(id: string, updates: Partial<SubmissionRe
 
 export async function readAudioBuffer(audioPath: string) {
   return fs.readFile(audioPath);
+}
+
+export async function deleteAudioFile(audioPath: string) {
+  try {
+    await fs.unlink(audioPath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw error;
+    }
+  }
 }

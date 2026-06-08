@@ -16,7 +16,6 @@ What this module does NOT do:
 
 from __future__ import annotations
 
-
 # ── Constants ────────────────────────────────────────────────
 
 # Percentage threshold above which a criterion counts as "met".
@@ -189,7 +188,8 @@ FEEDBACK_QUALITY_CRITERIA: list[dict] = [
             ),
             70: (
                 "An improvement area is described in changeable behavioral terms, "
-                "but the recommendation remains somewhat broad or only partially specific."
+                "but the recommendation remains somewhat broad or only "
+                "partially specific."
             ),
             85: (
                 "A clear, changeable behavior is identified as the improvement "
@@ -254,7 +254,8 @@ def format_retrieved_context(results: list[dict]) -> str:
         relevance = result.get("relevance", 0.0)
         text = result.get("text", "").strip()
         sections.append(
-            f"[Evidence {index} | source: {source} | relevance: {relevance:.3f}]\n{text}"
+            f"[Evidence {index} | source: {source} | "
+            f"relevance: {relevance:.3f}]\n{text}"
         )
 
     return "\n\n".join(sections)
@@ -309,8 +310,8 @@ def format_json_schema() -> str:
     }}
   ],
   "key_suggestion": {{
-    "en": "<single most important improvement tip in English, 1-2 sentences, natural prose>",
-    "de": "<single most important improvement tip in German, 1-2 sentences, natural prose>"
+    "en": "<single most important improvement tip in English, 1-2 sentences>",
+    "de": "<single most important improvement tip in German, 1-2 sentences>"
   }}
 }}"""
 

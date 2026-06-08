@@ -138,8 +138,8 @@ export const TRANSLATIONS = {
     en: "Recording in progress...",
   },
   recordingPrivacyNotice: {
-    de: "Ihre Audioaufnahme wird ausschließlich zur Verarbeitung verwendet und nicht gespeichert.",
-    en: "Your audio recording is used only for processing and is not stored.",
+    de: "Ihre Audioaufnahme wird lokal zwischengespeichert, verarbeitet und nach erfolgreicher Auswertung gelöscht.",
+    en: "Your audio recording is stored locally for processing and deleted after a successful evaluation.",
   },
   recordingFailed: {
     de: "Aufnahme fehlgeschlagen. Bitte erneut versuchen.",

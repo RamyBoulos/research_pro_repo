@@ -1,27 +1,25 @@
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
 
-# ── Shared enums ─────────────────────────────────────────────
-
-class Language(str, Enum):
+# Shared enums
+class Language(StrEnum):
     EN = "en"
     DE = "de"
 
 
-# ── Audio / Transcription ─────────────────────────────────────
-
+# Audio / transcription
 class TranscriptionResponse(BaseModel):
     transcript: str
     duration_seconds: float
 
 
-# ── Evaluation ───────────────────────────────────────────────
-
+# Evaluation
 class EvaluationRequest(BaseModel):
     """Input payload for evaluating an examiner feedback transcript."""
+
     transcript: str = Field(min_length=1, description="Transcript text to evaluate")
     duration_seconds: float = Field(ge=0.0, description="Audio duration in seconds")
     output_language: Language = Field(
@@ -32,12 +30,16 @@ class EvaluationRequest(BaseModel):
 
 class CriterionResult(BaseModel):
     """Result for a single feedback quality criterion."""
+
     criterion_id: str = Field(description="Unique identifier e.g. 'specific_behavior'")
     label: dict[Language, str] = Field(description="Human-readable label in EN and DE")
     score_percent: int = Field(
         ge=0,
         le=100,
-        description="How strongly the criterion was met, expressed as an integer percentage",
+        description=(
+            "How strongly the criterion was met, expressed as an integer "
+            "percentage"
+        ),
     )
     suggestion: dict[Language, str] = Field(
         description="Very short one-sentence improvement suggestion in EN and DE"
@@ -50,6 +52,7 @@ class CriterionResult(BaseModel):
 
 class EvaluationResult(BaseModel):
     """Full feedback quality evaluation returned to the frontend."""
+
     transcript: str
     duration_seconds: float
     overall_score: int = Field(ge=0, le=100, description="Integer percentage 0-100")
@@ -66,12 +69,16 @@ class EvaluationResult(BaseModel):
 
 class ResolvedCriterionResult(BaseModel):
     """Single-language view of a feedback quality criterion for display or export."""
+
     criterion_id: str
     label: str
     score_percent: int = Field(
         ge=0,
         le=100,
-        description="How strongly the criterion was met, expressed as an integer percentage",
+        description=(
+            "How strongly the criterion was met, expressed as an integer "
+            "percentage"
+        ),
     )
     suggestion: str
     quote: str | None = None
@@ -79,6 +86,7 @@ class ResolvedCriterionResult(BaseModel):
 
 class ResolvedEvaluationResult(BaseModel):
     """Single-language view of an evaluation resolved from the bilingual result."""
+
     output_language: Language
     transcript: str
     duration_seconds: float
@@ -90,11 +98,13 @@ class ResolvedEvaluationResult(BaseModel):
     key_suggestion: str
 
 
-# ── Coaching ────────────────────────────────────────────────
-
+# Coaching
 class CoachingMessage(BaseModel):
     role: Literal["user", "assistant"]
-    content: str = Field(min_length=1, description="Single chat message in the active UI language")
+    content: str = Field(
+        min_length=1,
+        description="Single chat message in the active UI language",
+    )
 
 
 class CoachingSessionSummary(BaseModel):
@@ -114,7 +124,10 @@ class CoachingRequest(BaseModel):
     transcript: str = Field(min_length=1, description="Original examiner transcript")
     duration_seconds: float = Field(ge=0.0, description="Audio duration in seconds")
     evaluation: ResolvedEvaluationResult
-    user_message: str = Field(min_length=1, description="Current user question for the coach")
+    user_message: str = Field(
+        min_length=1,
+        description="Current user question for the coach",
+    )
     conversation: list[CoachingMessage] = Field(default_factory=list)
     session_summary: CoachingSessionSummary | None = None
     output_language: Language = Field(
@@ -150,8 +163,7 @@ class ResolvedCoachingResponse(BaseModel):
     updated_session_summary: CoachingSessionSummary
 
 
-# ── Documents ────────────────────────────────────────────────
-
+# Documents
 class DocumentUploadResponse(BaseModel):
     filename: str
     status: str
@@ -170,7 +182,6 @@ class DocumentListResponse(BaseModel):
     total: int
 
 
-# ── Health ───────────────────────────────────────────────────
-
+# Health
 class HealthResponse(BaseModel):
     status: str

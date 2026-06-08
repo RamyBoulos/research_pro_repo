@@ -4,7 +4,10 @@ import logging
 import re
 from pathlib import Path
 
-from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
+from langchain_text_splitters import (
+    MarkdownHeaderTextSplitter,
+    RecursiveCharacterTextSplitter,
+)
 from openai import OpenAI
 
 from examiner_coach.config import settings
@@ -38,8 +41,8 @@ GUIDANCE_SECTION_PATTERNS = (
     "allgemeines feedbackregeln",
 )
 
-# ── Kisski client ─────────────────────────────────────────────
 
+# KISSKI client
 def get_kisski_client() -> OpenAI:
     return OpenAI(
         api_key=settings.kisski_api_key,
@@ -47,8 +50,7 @@ def get_kisski_client() -> OpenAI:
     )
 
 
-# ── Registry helpers ──────────────────────────────────────────
-
+# Registry helpers
 def load_registry() -> dict:
     if not settings.registry_path.exists():
         return {"indexed_files": []}
@@ -66,8 +68,7 @@ def is_indexed(filename: str) -> bool:
     return filename in registry["indexed_files"]
 
 
-# ── Document parsing via Kisski Docling ───────────────────────
-
+# Document parsing via KISSKI Docling
 def parse_document(file_path: Path) -> str:
     """
     Send document to Kisski Docling API for parsing.
@@ -89,6 +90,7 @@ def parse_document(file_path: Path) -> str:
     return data.get("markdown") or data.get("text") or ""
 
 
+# Chunking and metadata classification
 def clean_parsed_text(text: str) -> str:
     """
     Remove obvious parser artifacts while preserving nearby semantic content.
@@ -114,8 +116,6 @@ def clean_parsed_text(text: str) -> str:
     return "\n".join(cleaned_lines)
 
 
-# ── Chunking ──────────────────────────────────────────────────
-
 def chunk_text(text: str) -> list[str]:
     """
     Context-aware chunking for Docling markdown output.
@@ -136,11 +136,17 @@ def _infer_chunk_type(section_label: str, text: str) -> str:
 
     if any(pattern in lowered_label for pattern in LOW_VALUE_SECTION_PATTERNS):
         return "references"
-    if lowered_text.startswith("## references") or lowered_text.startswith("## literatur"):
+    if lowered_text.startswith((
+        "## references",
+        "## literatur",
+    )):
         return "references"
     if lowered_text.startswith("## abstract"):
         return "abstract"
-    if lowered_text.startswith("## conclusions") or lowered_text.startswith("## conclusion"):
+    if lowered_text.startswith((
+        "## conclusions",
+        "## conclusion",
+    )):
         return "conclusion"
     if any(pattern in lowered_label for pattern in GUIDANCE_SECTION_PATTERNS):
         return "guidance"
@@ -176,7 +182,7 @@ def chunk_document(text: str) -> list[dict]:
     Return chunk payloads with lightweight structural metadata so retrieval can
     prefer practical guidance over references and bibliography sections.
     """
-    # Step 1 — split on document structure
+    # Split on document structure before applying recursive text splitting.
     header_splitter = MarkdownHeaderTextSplitter(
         headers_to_split_on=[
             ("#", "h1"),

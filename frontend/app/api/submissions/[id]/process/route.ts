@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getSubmission, readAudioBuffer, updateSubmission } from "@/lib/localStore";
+import {
+  deleteAudioFile,
+  getSubmission,
+  readAudioBuffer,
+  updateSubmission,
+} from "@/lib/localStore";
 import { getSessionToken } from "@/lib/session";
 import { getUserForSession } from "@/lib/auth";
 import type {
@@ -11,15 +16,19 @@ import type {
   TranscriptionResponse,
 } from "@/types/evaluation";
 
-const FASTAPI_BASE_URL = (process.env.FASTAPI_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+const FASTAPI_BASE_URL = (
+  process.env.FASTAPI_BASE_URL ?? "http://127.0.0.1:8000"
+).replace(/\/$/, "");
 const DEFAULT_OUTPUT_LANGUAGE = "de";
 const SUPPORTED_LANGUAGES = new Set<Language>(["de", "en"]);
 
 async function fetchBackend(input: string, init: RequestInit) {
   try {
     return await fetch(input, init);
-  } catch (error) {
-    throw new Error(`Backend service is not reachable at ${FASTAPI_BASE_URL}. Start it with "make backend-dev".`);
+  } catch {
+    throw new Error(
+      `Backend service is not reachable at ${FASTAPI_BASE_URL}. Start it with "make backend-dev".`
+    );
   }
 }
 
@@ -35,7 +44,11 @@ async function readErrorDetail(response: Response, fallback: string): Promise<st
 async function transcribeWithBackend(audioBuffer: Buffer): Promise<TranscriptionResponse> {
   const formData = new FormData();
   const audioArrayBuffer = new Uint8Array(Array.from(audioBuffer)).buffer;
-  formData.append("audio", new Blob([audioArrayBuffer], { type: "audio/webm" }), "recording.webm");
+  formData.append(
+    "audio",
+    new Blob([audioArrayBuffer], { type: "audio/webm" }),
+    "recording.webm"
+  );
 
   const response = await fetchBackend(`${FASTAPI_BASE_URL}/api/transcribe`, {
     method: "POST",
@@ -126,7 +139,10 @@ export async function POST(request: Request, { params }: Params) {
   let outputLanguage: Language = DEFAULT_OUTPUT_LANGUAGE;
   try {
     const body = await request.json() as { output_language?: unknown };
-    if (typeof body.output_language === "string" && SUPPORTED_LANGUAGES.has(body.output_language as Language)) {
+    if (
+      typeof body.output_language === "string" &&
+      SUPPORTED_LANGUAGES.has(body.output_language as Language)
+    ) {
       outputLanguage = body.output_language as Language;
     }
   } catch {
@@ -156,15 +172,32 @@ export async function POST(request: Request, { params }: Params) {
   await updateSubmission(submission.id, { status: "processing", error_message: null });
 
   try {
+    if (!submission.audio_path) {
+      throw new Error("Audio file is no longer available for processing.");
+    }
     const audioBuffer = await readAudioBuffer(submission.audio_path);
     const { transcript, duration_seconds } = await transcribeWithBackend(audioBuffer);
     const evaluations = await evaluateWithBackend(transcript, duration_seconds);
+    let audioPath: string | null = submission.audio_path;
+    try {
+      await deleteAudioFile(submission.audio_path);
+      audioPath = null;
+    } catch (cleanupError) {
+      console.warn("Processed audio cleanup failed", {
+        submissionId: submission.id,
+        error:
+          cleanupError instanceof Error
+            ? cleanupError.message
+            : String(cleanupError),
+      });
+    }
 
     await updateSubmission(submission.id, {
       status: "done",
       transcript,
       evaluation: evaluations[outputLanguage],
       evaluations,
+      audio_path: audioPath,
       error_message: null
     });
 

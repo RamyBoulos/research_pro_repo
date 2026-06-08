@@ -55,7 +55,8 @@ def transcribe_audio_bytes(
                 response.text[:500],
             )
             raise RuntimeError(
-                f"Transcription upstream returned invalid JSON (status={response.status_code}). "
+                "Transcription upstream returned invalid JSON "
+                f"(status={response.status_code}). "
                 f"Response: {response.text[:500]}"
             ) from exc
         transcript = str(data.get("text") or "").strip()

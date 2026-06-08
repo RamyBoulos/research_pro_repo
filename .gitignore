@@ -13,6 +13,7 @@ __pycache__/
 # Knowledge base — raw files and processed vectors are not committed
 knowledge_base/raw/
 knowledge_base/processed/
+notebooks/knowledge_base/processed/
 
 # uv
 .python-version
@@ -30,6 +31,7 @@ knowledge_base/processed/
 dist/
 build/
 *.egg-info/
+*.tsbuildinfo
 
 # notebooks
 *.ipynb

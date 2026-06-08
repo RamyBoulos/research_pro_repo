@@ -38,7 +38,7 @@ Learner records audio in frontend
   -> frontend stores submission metadata and audio locally
   -> frontend calls FastAPI /api/transcribe
   -> backend sends audio to KISSKI/SAIA transcription endpoint
-  -> frontend calls FastAPI /api/evaluate
+  -> frontend calls FastAPI /api/evaluate/full
   -> backend retrieves educational evidence from ChromaDB
   -> backend calls the configured LLM with transcript + evidence + rubric
   -> backend validates and resolves the result
@@ -100,7 +100,7 @@ environment variables from the project `.env` file and defines:
 | KISSKI / SAIA access | `kisski_api_key`, `kisski_base_url`, `kisski_voice_base_url` |
 | Model selection | LLM, embedding, and Whisper model names |
 | Knowledge paths | raw knowledge directory, vector database directory, registry path |
-| Runtime behavior | app environment, log level |
+| Runtime behavior | app environment, log level, CORS origins |
 
 This module is imported throughout the backend so model names, API bases, and
 storage paths stay consistent.
@@ -158,6 +158,7 @@ transcription service.
 
 ```text
 POST /api/evaluate
+POST /api/evaluate/full
 ```
 
 Responsibilities:
@@ -165,7 +166,8 @@ Responsibilities:
 - Validate transcript, duration, and requested output language.
 - Call `evaluate_transcript()` from `services/rag_pipeline.py`.
 - Resolve the canonical bilingual result into the requested language.
-- Return a validated `ResolvedEvaluationResult`.
+- Return either a validated `ResolvedEvaluationResult` or the canonical
+  bilingual `EvaluationResult`.
 
 This is the main production entry point for feedback scoring.
 

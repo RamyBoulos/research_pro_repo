@@ -37,10 +37,23 @@ export default function CertificateModal({ name, onClose }: CertificateModalProp
   <meta charset="UTF-8" />
   <title>${t("downloadCertificateLabel")}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Fraunces:ital,wght@0,400;0,700;1,400&display=swap');
+    @font-face {
+      font-family: 'Fraunces';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url('/fonts/fraunces-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      font-style: normal;
+      font-weight: 300 700;
+      font-display: swap;
+      src: url('/fonts/space-grotesk-latin.woff2') format('woff2');
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
       background: #fff;
       display: flex;
       align-items: center;
@@ -64,7 +77,7 @@ export default function CertificateModal({ name, onClose }: CertificateModalProp
       margin-bottom: 32px;
     }
     h1 {
-      font-family: 'Fraunces', serif;
+      font-family: 'Fraunces', Georgia, serif;
       font-size: 32px;
       font-weight: 700;
       margin-bottom: 40px;
@@ -76,7 +89,7 @@ export default function CertificateModal({ name, onClose }: CertificateModalProp
       color: #00008c;
     }
     .name {
-      font-family: 'Fraunces', serif;
+      font-family: 'Fraunces', Georgia, serif;
       font-size: 26px;
       font-weight: 400;
       font-style: italic;

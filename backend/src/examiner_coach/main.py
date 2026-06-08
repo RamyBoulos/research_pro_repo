@@ -8,10 +8,11 @@ from examiner_coach.config import settings
 
 def create_app() -> FastAPI:
     """
-    Application factory — creates and configures the FastAPI instance.
-    Import routes here to keep main.py clean and testable.
-    """
+    Create and configure the FastAPI application.
 
+    Routes are imported inside the factory so app construction stays testable
+    and importing this module does not eagerly pull every route dependency.
+    """
     app = FastAPI(
         title="Examiner Coach",
         description="AI-powered OSCE examiner feedback training tool",
@@ -20,25 +21,20 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if settings.is_development else None,
     )
 
-    # ── CORS ─────────────────────────────────────────────────
-    # In development: allow all origins (frontend dev server)
-    # In production: restrict to actual deployment domain
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"] if settings.is_development else ["https://your-domain.de"], # Add your production domain here
+        allow_origins=settings.allowed_cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # ── Logging ──────────────────────────────────────────────
     logging.basicConfig(level=settings.log_level.upper())
 
-    # ── Routes ───────────────────────────────────────────────
+    # Register active API route groups.
     from examiner_coach.api.routes import health
     app.include_router(health.router, prefix="/api", tags=["health"])
 
-    # These will be uncommented as we build each service:
     from examiner_coach.api.routes import audio
     app.include_router(audio.router, prefix="/api", tags=["audio"])
 

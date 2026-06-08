@@ -27,7 +27,8 @@ logger = logging.getLogger(__name__)
 CRITERION_AWARE_RETRIEVAL_HINT = (
     "Find educational guidance about evaluating the quality of OSCE examiner feedback. "
     "Prioritize evidence about specific observed behavior, contextual feedback, "
-    "objective and non-evaluative tone, explicit strengths, changeable improvement areas, "
+    "objective and non-evaluative tone, explicit strengths, changeable "
+    "improvement areas, "
     "and concrete improvement plans or suggestions for change."
 )
 
@@ -108,7 +109,9 @@ class RetrievalConfig:
     enable_quality_reranking: bool = True
 
 
-def resolve_retrieval_mode(config: RetrievalConfig) -> Literal["none", "direct", "hyde"]:
+def resolve_retrieval_mode(
+    config: RetrievalConfig,
+) -> Literal["none", "direct", "hyde"]:
     """
     Resolve the effective retrieval mode while keeping `use_hyde` backward
     compatible for older callers.
@@ -138,7 +141,10 @@ def build_criterion_aware_query(retrieval_input: RetrievalInput) -> str:
     instead of only semantic overlap with transcript wording.
     """
     base_query = build_retrieval_query(retrieval_input)
-    return f"{CRITERION_AWARE_RETRIEVAL_HINT}\n\nTranscript to ground the search:\n{base_query}"
+    return (
+        f"{CRITERION_AWARE_RETRIEVAL_HINT}\n\n"
+        f"Transcript to ground the search:\n{base_query}"
+    )
 
 
 def generate_hypothetical_document(query: str, max_tokens: int) -> str:
@@ -218,11 +224,17 @@ def translate_transcript_to_english(transcript: str) -> str:
         )
         normalized = (response.choices[0].message.content or "").strip()
         if not normalized:
-            logger.warning("Transcript translation returned empty content; using original transcript")
+            logger.warning(
+                "Transcript translation returned empty content; using original "
+                "transcript"
+            )
             return transcript
         return normalized
     except Exception as exc:
-        logger.warning("Transcript translation failed; using original transcript. Error: %s", exc)
+        logger.warning(
+            "Transcript translation failed; using original transcript. Error: %s",
+            exc,
+        )
         return transcript
 
 
@@ -243,7 +255,9 @@ def retrieve_hyde(query: str, k: int, max_tokens: int) -> list[dict]:
     """
     hypothetical_document = generate_hypothetical_document(query, max_tokens=max_tokens)
     if not hypothetical_document:
-        logger.warning("HyDE generation returned empty content; skipping HyDE retrieval")
+        logger.warning(
+            "HyDE generation returned empty content; skipping HyDE retrieval"
+        )
         return []
 
     # HyDE generates a document-like passage, so embed it in the same
@@ -289,7 +303,11 @@ def deduplicate_candidates(candidates: list[dict]) -> list[dict]:
         if not current.get("metadata") and candidate.get("metadata"):
             current["metadata"] = candidate["metadata"]
 
-    return sorted(deduplicated.values(), key=lambda item: item["relevance"], reverse=True)
+    return sorted(
+        deduplicated.values(),
+        key=lambda item: item["relevance"],
+        reverse=True,
+    )
 
 
 def _normalize_text_for_matching(text: str) -> str:
@@ -320,14 +338,20 @@ def _looks_like_low_value_chunk(candidate: dict) -> bool:
     if any(pattern in normalized for pattern in LOW_VALUE_TEXT_PATTERNS):
         return True
 
-    non_empty_lines = [line.strip() for line in candidate.get("text", "").splitlines() if line.strip()]
+    non_empty_lines = [
+        line.strip()
+        for line in candidate.get("text", "").splitlines()
+        if line.strip()
+    ]
     if not non_empty_lines:
         return True
 
     short_lines = sum(1 for line in non_empty_lines if len(line) < 120)
     doi_count = normalized.count("doi:")
     bullet_count = len(re.findall(r"(?m)^\s*-\s", candidate.get("text", "")))
-    return doi_count >= 2 or (short_lines / len(non_empty_lines) > 0.8 and bullet_count >= 3)
+    return doi_count >= 2 or (
+        short_lines / len(non_empty_lines) > 0.8 and bullet_count >= 3
+    )
 
 
 def _score_candidate_quality(candidate: dict) -> tuple[float, list[str]]:
@@ -372,7 +396,10 @@ def _score_candidate_quality(candidate: dict) -> tuple[float, list[str]]:
         reasons.append("actionable-guidance")
 
     section_label_normalized = _normalize_text_for_matching(section_label)
-    if any(pattern in section_label_normalized for pattern in GENERIC_OVERVIEW_SECTION_PATTERNS):
+    if any(
+        pattern in section_label_normalized
+        for pattern in GENERIC_OVERVIEW_SECTION_PATTERNS
+    ):
         score -= 0.08
         reasons.append("generic-section")
 
@@ -435,7 +462,11 @@ def select_final_context(
     Select the final retrieval results after optional quality reranking.
     """
     if not config.enable_quality_reranking:
-        return sorted(candidates, key=lambda item: item["relevance"], reverse=True)[: config.final_k]
+        return sorted(
+            candidates,
+            key=lambda item: item["relevance"],
+            reverse=True,
+        )[: config.final_k]
 
     rescored_candidates: list[dict] = []
     for candidate in candidates:
@@ -446,9 +477,17 @@ def select_final_context(
         updated["rerank_reasons"] = rerank_reasons
         rescored_candidates.append(updated)
 
-    filtered = [candidate for candidate in rescored_candidates if not _looks_like_low_value_chunk(candidate)]
+    filtered = [
+        candidate
+        for candidate in rescored_candidates
+        if not _looks_like_low_value_chunk(candidate)
+    ]
     final_pool = filtered or rescored_candidates
-    return sorted(final_pool, key=lambda item: item["relevance"], reverse=True)[: config.final_k]
+    return sorted(
+        final_pool,
+        key=lambda item: item["relevance"],
+        reverse=True,
+    )[: config.final_k]
 
 
 def build_rag_context(
@@ -515,7 +554,10 @@ def _build_missing_suggestion(criterion_id: str) -> dict[Language, str]:
     """
     return {
         Language.EN: f"Add a clearer improvement point for '{criterion_id}'.",
-        Language.DE: f"Ergaenzen Sie einen klareren Verbesserungshinweis fuer '{criterion_id}'.",
+        Language.DE: (
+            "Ergaenzen Sie einen klareren Verbesserungshinweis "
+            f"fuer '{criterion_id}'."
+        ),
     }
 
 
@@ -560,7 +602,10 @@ def _parse_llm_response(
         criterion_id = item.get("criterion_id")
         if not criterion_id:
             continue
-        if any(definition["id"] == criterion_id for definition in FEEDBACK_QUALITY_CRITERIA):
+        if any(
+            definition["id"] == criterion_id
+            for definition in FEEDBACK_QUALITY_CRITERIA
+        ):
             raw_criteria[criterion_id] = item
         else:
             unknown_ids.append(str(criterion_id))
@@ -631,9 +676,10 @@ def _parse_llm_response(
 
     summary_raw = data.get("summary")
     if isinstance(summary_raw, dict):
+        missing_summary = _build_missing_summary()
         summary = {
-            Language.EN: str(summary_raw.get("en") or _build_missing_summary()[Language.EN]),
-            Language.DE: str(summary_raw.get("de") or _build_missing_summary()[Language.DE]),
+            Language.EN: str(summary_raw.get("en") or missing_summary[Language.EN]),
+            Language.DE: str(summary_raw.get("de") or missing_summary[Language.DE]),
         }
     else:
         summary = _build_missing_summary()
@@ -642,7 +688,9 @@ def _parse_llm_response(
     if isinstance(key_suggestion_raw, dict):
         key_suggestion = {
             Language.EN: str(key_suggestion_raw.get("en") or "No suggestion provided."),
-            Language.DE: str(key_suggestion_raw.get("de") or "Kein Vorschlag angegeben."),
+            Language.DE: str(
+                key_suggestion_raw.get("de") or "Kein Vorschlag angegeben."
+            ),
         }
     else:
         key_suggestion = {
