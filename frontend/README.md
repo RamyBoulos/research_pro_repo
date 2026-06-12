@@ -47,7 +47,7 @@ npm run dev
 - Verarbeitung ist synchron, mit Timeout (25s) pro Request.
 - Bei Timeout liefert `/api/submissions/[id]/process` Status `processing`.
 - In diesem Fall kann der Client erneut `process` aufrufen oder weiter pollen.
-- Im FastAPI-integrierten Pfad ruft der Next.js-Prozess-Route zuerst `/api/transcribe` und anschliessend `/api/evaluate` auf.
+- Im FastAPI-integrierten Pfad ruft der Next.js-Prozess-Route zuerst `/api/transcribe` und anschliessend `/api/evaluate/full` auf.
 
 ## Manuelle E2E Tests (Akzeptanztest)
 1. `/login` laden, Zugangscode eingeben.

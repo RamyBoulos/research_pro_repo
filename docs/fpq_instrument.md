@@ -140,13 +140,13 @@ The backend computes:
 
 - `overall_score`: arithmetic mean of the six criterion scores.
 - `criteria_met`: number of criteria with a score greater than or equal to the
-  configured threshold.
+  default threshold (`score >= 70`).
 - `total_criteria`: the number of active criteria, currently six.
 
 The current threshold for a criterion to count as met is:
 
 ```text
-70 percent
+score >= 70
 ```
 
 ## Interpretation

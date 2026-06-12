@@ -26,8 +26,8 @@ The application supports a typical examiner training workflow:
 3. The recording is transcribed through a KISSKI/SAIA speech endpoint.
 4. The transcript is evaluated against explicit feedback-quality criteria.
 5. Relevant educational guidance is retrieved from a ChromaDB knowledge base.
-6. The LLM returns a structured evaluation with scores, suggestions, and a key
-   improvement point.
+6. The LLM returns criterion-level scores, suggestions, and a key improvement
+   point; the backend computes the overall score and validates the result.
 7. The learner can switch between German and English result views without
    regenerating the evaluation.
 8. The learner can use the coaching chat to ask follow-up questions, request
@@ -75,7 +75,7 @@ The evaluation rubric currently scores six dimensions of examiner feedback:
 - Concrete improvement plan or next step
 
 Each criterion is scored as a percentage. The backend computes the overall
-score and counts criteria as met using the configured threshold.
+score and counts criteria as met using the default threshold of `>= 70`.
 
 ## Main Request Flow
 
@@ -96,7 +96,7 @@ The coaching chat uses a similar evidence-grounded backend path:
 ```text
 Frontend coaching question
   -> FastAPI /api/coach
-  -> evidence retrieval
+  -> evidence retrieval when needed
   -> bilingual coaching prompt
   -> structured coaching response with updated session summary
 ```
@@ -215,10 +215,9 @@ cd frontend
 npm run dev
 ```
 
-If you are already inside the `frontend/` directory, either command works:
+If you are already inside the `frontend/` directory, run:
 
 ```bash
-make frontend-dev
 npm run dev
 ```
 
@@ -360,6 +359,9 @@ make compare-rag-core
 This compares no-RAG, direct RAG, unfiltered direct RAG, HyDE, and unfiltered
 HyDE variants.
 
+In the unfiltered variants, criterion-aware query construction and quality
+reranking are disabled.
+
 The comparison outputs used during development indicated that `hyde_k8` was the
 best overall production candidate. In the illustrative comparison notebook, it
 had the lowest average distance to the gold score band and the highest number of
@@ -424,8 +426,9 @@ Run backend tests with:
 make test
 ```
 
-The current tests cover selected service-level behavior, including document
-processing, transcription, and retrieval configuration. External AI calls should be tested with mocks or controlled sample data where possible.
+The current tests cover selected service-level behavior, especially retrieval
+configuration and related backend utilities. External AI calls should be tested
+with mocks or controlled sample data where possible.
 
 ## API Summary
 
@@ -434,7 +437,10 @@ Active backend endpoints:
 - `GET /api/health`: service health check.
 - `POST /api/transcribe`: accepts an audio file and returns transcript plus
   duration.
-- `POST /api/evaluate`: evaluates a transcript using the RAG pipeline.
+- `POST /api/evaluate`: evaluates a transcript using the RAG pipeline and
+  returns a resolved single-language result.
+- `POST /api/evaluate/full`: evaluates a transcript and returns the canonical
+  bilingual result.
 - `POST /api/coach`: provides bilingual follow-up coaching based on transcript,
   evaluation, conversation history, retrieved evidence, and the requested
   output language.

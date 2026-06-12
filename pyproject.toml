@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [
-    { name = "Ramy", email = "your@email.com" }
+    { name = "Ramy Magdy Lamei Boulos", email = "ramyboulos@gmail.com" }
 ]
 keywords = ["OSCE", "medical-education", "feedback", "LLM", "RAG"]
 dependencies = [

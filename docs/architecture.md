@@ -58,7 +58,7 @@ backend/src/examiner_coach/
 │   ├── schemas.py           # Pydantic request/response models shared by routes and services
 │   └── routes/              # FastAPI endpoint modules
 │       ├── audio.py         # /api/transcribe: accepts audio upload and returns transcript + duration
-│       ├── evaluation.py    # /api/evaluate: runs the RAG evaluation pipeline
+│       ├── evaluation.py    # /api/evaluate and /api/evaluate/full: RAG evaluation
 │       ├── coaching.py      # /api/coach: answers follow-up questions using transcript, evaluation, and evidence
 │       └── health.py        # /api/health: simple service availability check
 ├── services/                # Core backend logic and AI workflows
@@ -83,7 +83,10 @@ Active route groups:
 
 - `GET /api/health`: basic service availability check.
 - `POST /api/transcribe`: audio transcription.
-- `POST /api/evaluate`: RAG-based transcript evaluation.
+- `POST /api/evaluate`: RAG-based transcript evaluation resolved into one
+  display language.
+- `POST /api/evaluate/full`: RAG-based transcript evaluation returned as the
+  canonical bilingual result.
 - `POST /api/coach`: conversational coaching based on transcript, evaluation,
   and retrieved evidence.
 
@@ -278,8 +281,9 @@ Retrieval modes:
 | `direct` | Embed the transcript/query and retrieve directly from ChromaDB |
 | `hyde` | Combine direct retrieval with a generated hypothetical evidence passage |
 
-The default production behavior is direct retrieval with criterion-aware query
-construction, English normalization, and quality reranking.
+The default production behavior is the `hyde_k8` configuration: HyDE retrieval
+with a candidate pool of 20, a final context size of 8 chunks, English
+normalization, criterion-aware query construction, and quality reranking.
 
 ### Retrieval Reranking
 
@@ -456,14 +460,14 @@ Output:
 
 ```text
 Frontend submission processor
-  -> POST /api/evaluate
+  -> POST /api/evaluate/full
   -> api/routes/evaluation.py
   -> services/rag_pipeline.py
   -> db/vector_store.py
   -> services/evaluation_prompt.py
   -> KISSKI LLM endpoint
   -> utils/i18n.py
-  -> ResolvedEvaluationResult
+  -> EvaluationResult
 ```
 
 The evaluation result contains:
@@ -482,7 +486,7 @@ The evaluation result contains:
 Frontend coaching request
   -> POST /api/coach
   -> api/routes/coaching.py
-  -> services/rag_pipeline.py for evidence retrieval
+  -> services/rag_pipeline.py for evidence retrieval when needed
   -> services/coaching_prompt.py
   -> KISSKI LLM endpoint
   -> structured JSON parsing
@@ -531,7 +535,7 @@ AppShell
   -> /api/submissions
   -> /api/submissions/{id}/process
   -> FastAPI /api/transcribe
-  -> FastAPI /api/evaluate
+  -> FastAPI /api/evaluate/full
 ```
 
 The frontend's Next.js API routes act as a backend-for-frontend:
@@ -586,17 +590,16 @@ Backend tests currently cover selected core units:
 
 ```text
 backend/tests/
-├── test_document_manager.py
-├── test_rag_pipeline.py
-└── test_transcription.py
+├── test_coaching_policy.py
+└── test_rag_pipeline.py
 ```
 
 The existing tests focus on:
 
+- Coaching-intent classification.
+- Citation-policy behavior for coaching responses.
 - Retrieval configuration behavior.
 - RAG context behavior when retrieval is disabled.
-- Document/chunking behavior.
-- Transcription service behavior.
 
 Because the backend relies on external AI services, many integration paths are
 best tested with mocked clients or controlled sample data.

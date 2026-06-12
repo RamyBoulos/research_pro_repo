@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite the software repository and the accompanying research project report."
+title: "Examiner Coach: A Modular RAG Prototype for OSCE Examiner Feedback Training"
+type: software
+authors:
+  - family-names: Boulos
+    given-names: Ramy Magdy Lamei
+    email: ramyboulos@gmail.com
+version: "0.1.0"
+license: MIT
+repository-code: "https://github.com/RamyBoulos/research_pro_repo"
+keywords:
+  - OSCE
+  - medical education
+  - feedback training
+  - retrieval-augmented generation
+  - large language models
+  - KISSKI
+abstract: >-
+  Examiner Coach is a research prototype for OSCE examiner feedback training.
+  It combines speech transcription, a six-criterion formative feedback-quality
+  model, retrieval-augmented generation, and bilingual coaching support.
+preferred-citation:
+  type: report
+  title: "Examiner Coach: A Modular RAG Prototype for OSCE Examiner Feedback Training"
+  authors:
+    - family-names: Boulos
+      given-names: Ramy Magdy Lamei
+      email: ramyboulos@gmail.com
+  year: 2026
+  institution:
+    name: "Technische Universitaet Dresden"
+  notes: "Research Project Report, Computational Modelling and Simulation M.Sc., Life Science Track."

@@ -34,7 +34,7 @@ Participant records feedback in the frontend
   -> frontend sends audio to FastAPI /api/transcribe
   -> backend sends audio to the configured KISSKI/SAIA transcription endpoint
   -> backend returns transcript and duration
-  -> frontend sends transcript to FastAPI /api/evaluate
+  -> frontend sends transcript to FastAPI /api/evaluate/full
   -> backend retrieves evidence from the local ChromaDB knowledge base
   -> backend sends transcript, retrieved evidence, and rubric to the LLM endpoint
   -> backend returns structured evaluation
@@ -95,8 +95,9 @@ be checked for the concrete deployment.
 ## Retention and Deletion
 
 The current implementation deletes a submission audio file after successful
-transcription and evaluation. If processing fails, the audio file is retained
-with the failed submission so the request can be retried or inspected.
+transcription and evaluation. If submission processing fails before cleanup, the
+audio file is retained with the failed submission so the request can be retried
+or inspected.
 
 Other locally stored data remains present until it is manually deleted or the
 deployment environment removes it. This includes session metadata, submission
