@@ -1,0 +1,90 @@
+\section{Discussion}
+
+\subsection{Strengths}
+The main strength of Examiner Coach is its modular backend design. The system
+separates transcription, retrieval, evaluation, validation, and coaching, making
+it easier to inspect and adapt individual components. The six-criterion rubric
+also makes LLM output more structured and educationally interpretable.
+
+Another strength is the direct connection between educational theory and system
+design. The system does not merely ask an LLM to ``give feedback on feedback''.
+It constrains the task through explicit criteria, score anchors, retrieved
+evidence, and a structured output schema. This makes the output more suitable
+for formative training because the examiner can see which aspect of the
+feedback needs improvement and can ask targeted follow-up questions.
+
+This directly addresses the training gap described in the problem definition.
+Instead of relying only on occasional large-group examiner training, the
+prototype supports repeated individual practice: an examiner can record a
+two-minute feedback attempt, receive immediate criterion-based evaluation, and
+then ask for clarification or alternative wording. The system therefore targets
+the missing practice-and-correction loop rather than replacing formal examiner
+training.
+
+The modular design also supports experimentation. Retrieval can be disabled,
+direct retrieval and HyDE can be compared, and filtering or reranking can be
+switched on or off. This is valuable in a research project because it allows the
+system to be studied as a set of computational modelling choices rather than as
+a fixed black-box application.
+
+\subsection{Limitations}
+The current evaluation is prototype-level and should not be interpreted as a
+final validation study. Results depend on transcription quality, retrieval
+quality, prompt calibration, model availability, and the benchmark design. The
+system does not replace expert human judgment.
+
+The benchmark comparison is also limited by its size and construction. Expected
+score bands provide a useful calibration target, but they are not equivalent to
+consensus ratings from multiple medical education experts. The LLM-as-a-judge
+analysis gives an additional consistency check, but it remains model-based and
+therefore cannot replace human validation. A future study should compare system
+outputs against trained human raters and examine inter-rater agreement.
+
+Another limitation is model stability. The evaluation model used for the
+notebook comparison is no longer available in the current KISSKI setup, so the
+exact results should not be overinterpreted as final performance claims. The
+architecture and comparison method remain valid, but the numerical results need
+to be repeated under the current model configuration.
+
+\subsection{Privacy and Ethical Considerations}
+The system processes audio, transcripts, evaluation results, and coaching
+interactions. External AI services may receive audio or text depending on the
+configured endpoint. Future deployment requires clear retention policies, access
+control, participant information, and review of institutional data protection
+requirements.
+
+This privacy aspect is part of the core problem, not an afterthought. In medical
+education, examiner feedback may be patient-adjacent, institution-specific, or
+linked to assessment material. For this reason, a tool intended for examiner
+training cannot simply assume that commercial AI services are acceptable. The
+prototype uses configured KISSKI/SAIA endpoints and a local knowledge base, but
+future deployment would still need formal review of what data leaves the local
+environment, how long audio and transcripts are retained, and who can access the
+stored training outputs.
+
+Ethically, the system should be positioned as a training aid rather than an
+authority over examiner competence. Automated feedback evaluation can support
+self-reflection, but it may also create false confidence if users treat scores
+as objective judgments. For this reason, the report interprets scores as
+formative indicators and emphasizes the need for expert review before live study
+deployment.
+
+\subsection{Future Work}
+Future work should first validate the prototype with medical educators and OSCE
+examiners. The current benchmark provides an initial calibration signal, but it
+should be compared with human expert ratings and tested in a user study that
+examines usefulness, trust, clarity of the criteria, and whether repeated
+practice improves feedback delivery.
+
+Technically, the next step is more detailed retrieval analysis. This includes
+examining which evidence sources are retrieved, which rubric criteria benefit
+most from RAG, and how retrieval behaves across German and English transcripts.
+The comparison framework could also be extended to test different values of
+\texttt{final\_k}, candidate-pool sizes, HyDE prompts, reranking rules, and
+repeated model runs.
+
+The extended comparison was not used in this report to avoid unnecessary use of
+shared AI infrastructure and to remain mindful of the environmental impact of
+large numbers of LLM and judge calls. Future experiments should therefore be
+planned around specific research questions and reported together with the model,
+number of calls, and configuration used.

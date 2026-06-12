@@ -6,9 +6,9 @@ from examiner_coach.services.rag_pipeline import (
 )
 
 
-def test_resolve_retrieval_mode_keeps_direct_default() -> None:
+def test_resolve_retrieval_mode_uses_hyde_default() -> None:
     config = RetrievalConfig()
-    assert resolve_retrieval_mode(config) == "direct"
+    assert resolve_retrieval_mode(config) == "hyde"
 
 
 def test_resolve_retrieval_mode_supports_use_hyde_backcompat() -> None:

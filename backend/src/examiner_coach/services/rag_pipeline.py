@@ -99,7 +99,7 @@ class RetrievalConfig:
     retrieval and half from the hypothetical query.
     """
 
-    retrieval_mode: Literal["none", "direct", "hyde"] = "direct"
+    retrieval_mode: Literal["none", "direct", "hyde"] = "hyde"
     candidate_pool_size: int = 20
     final_k: int = 8
     use_hyde: bool = False

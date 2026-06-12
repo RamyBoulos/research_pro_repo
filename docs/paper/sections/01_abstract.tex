@@ -1,0 +1,20 @@
+\begin{abstract}
+\noindent
+This report presents Examiner Coach, a prototype system for supporting OSCE
+examiner feedback training through speech transcription, structured
+feedback-quality evaluation, and retrieval-augmented coaching. The system
+models examiner feedback quality using six formative criteria and implements a
+backend-centered modular retrieval-augmented generation pipeline for
+evidence-grounded evaluation and follow-up support. The project is motivated by
+a training gap in OSCE examinations: examiners are expected to deliver concise,
+structured feedback, but often lack scalable opportunities for individual
+practice, immediate correction, and privacy-conscious AI support. Inspired by
+Modular RAG concepts, the implemented pipeline separates knowledge indexing,
+transcript normalization, retrieval, post-retrieval evidence selection,
+LLM-based generation, and validation. A prototype comparison of RAG variants
+illustrates the effect of retrieval strategies, including direct retrieval and
+HyDE-based retrieval, on calibration against benchmark feedback cases. The
+report focuses on the backend modelling and retrieval architecture, while the
+user interface is treated only as a supporting layer for audio input and result
+display.
+\end{abstract}

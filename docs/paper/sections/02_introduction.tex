@@ -1,0 +1,70 @@
+\section{Introduction}
+
+\subsection{Motivation}
+Objective Structured Clinical Examinations (OSCEs) are widely used in medical
+education to assess clinical and communication skills. In this setting, the
+quality of examiner feedback is central to learning. However, feedback may vary
+substantially between examiners and can be vague, overly judgmental,
+insufficiently specific, or difficult for students to act upon. Feedback that
+does not refer to observable behavior can support encouragement, but it often
+does not provide enough information for targeted improvement
+\cite{hattie2007power,gigante2011getting,ramani2012twelve}.
+
+This problem is particularly relevant in current examiner training. Examiners
+are required to give structured two-minute feedback at every OSCE station, but
+many have not received formal training in how to do this. The skill is not
+trivial: high-quality feedback requires observation, prioritisation, concise
+wording, balanced judgement, and an actionable recommendation within a short
+time window. An examiner may know the expected clinical performance, but still
+struggle to formulate feedback that is educationally useful.
+
+For example, a statement such as ``good job'' or ``you need to be more
+systematic'' may be well intentioned, but it does not tell the learner which
+observed action was effective, which behavior should be changed, or how to
+improve in the next OSCE station. Examiner Coach addresses this gap by treating
+feedback itself as the object of analysis. The system does not grade the
+student in the OSCE video; instead, it evaluates the quality of the examiner's
+spoken feedback to that student. The project therefore sits at the intersection
+of medical education, natural language processing, and human-computer
+interaction.
+
+\subsection{Problem Definition}
+The problem addressed in this report is not simply that feedback can be poor. It
+is that feedback delivery is a skill that requires practice, guidance, and
+timely correction, while the current OSCE training context provides limited
+support for individual rehearsal. The project is defined by four connected
+challenges:
+\begin{itemize}
+    \item examiners are expected to provide structured two-minute feedback at
+    every station, but many have received no formal feedback-delivery training;
+    \item existing examiner training is often delivered in large-group
+    workshops with limited individual practice and personalised correction;
+    \item there is no scalable, on-demand tool that allows examiners to practise
+    feedback delivery and receive immediate criterion-based evaluation;
+    \item privacy constraints in medical education make commercial AI services
+    unsuitable for many examiner-training scenarios, because patient-adjacent
+    and institutional data must remain protected.
+\end{itemize}
+
+The resulting training gap is therefore clear: examiners are expected to give
+structured, useful feedback, but lack a scalable and privacy-conscious way to
+rehearse this skill before entering the examination setting.
+
+\subsection{Aim and Contributions}
+This project aims to develop a prototype AI system that supports examiner
+feedback training by evaluating spoken feedback and providing formative
+coaching. The main contributions are:
+\begin{itemize}
+    \item a structured six-criterion model for feedback-quality evaluation;
+    \item a backend-centered modular RAG pipeline for evidence-grounded
+    assessment;
+    \item bilingual German and English evaluation and coaching support;
+    \item a prototype comparison of RAG variants, including no-RAG, direct
+    retrieval, and HyDE-based retrieval.
+\end{itemize}
+
+The report therefore asks how a modular RAG architecture can be adapted to a
+medical education feedback-training scenario, and whether retrieval-based
+variants provide clearer calibration than a prompt-only baseline. The intended
+outcome is not a final clinical validation, but a technically inspectable
+prototype that can support later expert review and user studies.

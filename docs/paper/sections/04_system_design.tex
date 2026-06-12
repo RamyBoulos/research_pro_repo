@@ -1,0 +1,94 @@
+\section{System Design}
+
+\subsection{Backend-Centered Pipeline}
+The backend AI pipeline represents the core of Examiner Coach. The pipeline receives spoken
+feedback, obtains a transcript, retrieves relevant educational evidence,
+evaluates the transcript against a rubric, and supports follow-up coaching.
+
+The pipeline can be summarized as follows:
+\begin{enumerate}
+    \item the examiner records spoken feedback for an OSCE station;
+    \item the audio is transcribed by the configured speech model;
+    \item the transcript is normalized where needed for retrieval;
+    \item criterion-aware retrieval queries are constructed;
+    \item educational feedback literature is retrieved from the vector store;
+    \item the LLM evaluates the transcript using the rubric and retrieved
+    evidence;
+    \item the structured result is validated and resolved into the requested
+    display language;
+    \item optional follow-up coaching chat reuses the transcript, evaluation, and
+    retrieved evidence.
+\end{enumerate}
+
+The frontend is therefore intentionally not the scientific focus of this
+report. It acts as an interaction layer for recording and displaying results,
+whereas the research contribution is the modelling and orchestration of the
+backend evaluation and coaching process.
+
+The design is shaped by the problem definition: the system must be available for
+individual practice, return feedback immediately enough to support rehearsal,
+and evaluate the examiner's response against explicit criteria rather than
+providing only generic comments. It must also keep the data flow inspectable so
+that privacy implications can be discussed and controlled in an institutional
+medical education context. In this sense, the project can be understood as a
+small applied step toward the KISSKI vision: providing AI methods for sensitive
+health-related infrastructures in a way that is usable for real institutional
+workflows rather than only for isolated demonstrations.
+
+\subsection{Knowledge Base and Retrieval}
+Educational feedback material is ingested into a local ChromaDB vector store.
+Documents are chunked, embedded using a multilingual embedding model respecting the bilingual nature of both the knowledge base and the feedback transcripts, and
+retrieved at runtime based on the feedback transcript and evaluation criteria.
+Retrieval can be performed directly or through HyDE-based hypothetical-passage
+retrieval.
+
+The knowledge base gives the system a way to ground feedback evaluation in
+educational guidance instead of relying only on the LLM's internal training
+data. This is especially important because the task is not generic text
+classification. The system must distinguish feedback that is merely positive
+from feedback that is specific, formative, and behaviorally actionable. The
+retrieved context provides concepts and examples that help the evaluation prompt
+remain aligned with feedback education principles.
+
+\begin{table}[ht]
+    \centering
+    \small
+    \begin{tabular}{L{0.20\linewidth}L{0.32\linewidth}L{0.36\linewidth}}
+        \toprule
+        Module & Implementation in Examiner Coach & Purpose \\
+        \midrule
+        Indexing & Document ingestion, chunking, embeddings, ChromaDB storage
+        & Prepare educational evidence for later retrieval. \\
+        Pre-retrieval & Transcript normalization and criterion-aware query
+        construction & Improve retrieval relevance across German and English
+        feedback. \\
+        Retrieval & Direct vector search or HyDE-based retrieval & Select
+        candidate evidence chunks from the knowledge base. \\
+        Post-retrieval & Filtering, reranking, and final evidence formatting
+        & Prefer practical feedback guidance over generic or weakly related
+        chunks. \\
+        Generation & Structured LLM prompt using transcript, evidence, and
+        rubric & Produce criterion scores, suggestions, quotes, and summary. \\
+        Validation & JSON parsing and schema-based result assembly & Keep
+        output machine-readable and suitable for coaching reuse. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Mapping of Examiner Coach to a modular RAG architecture.}
+    \label{tab:modular-rag-mapping}
+\end{table}
+
+\subsection{Evaluation and Coaching Flow}
+The evaluation flow combines the transcript, retrieved evidence, and a
+structured rubric prompt. The LLM returns criterion-level scores, suggestions,
+and quotes where applicable. The backend then parses the response, computes the
+overall score, validates the structured result, and resolves it into the
+requested display language. The coaching flow reuses the transcript,
+evaluation result, and retrieved evidence to answer follow-up questions.
+
+The coaching component extends the evaluation from a static score report into a
+learning interaction. After receiving an evaluation, the examiner can ask why a
+criterion was scored in a particular way or request alternative wording. This is
+important pedagogically because the score alone does not teach the examiner how
+to improve. The coaching response can refer back to the transcript, the scored
+criteria, and the evidence base, thereby connecting system output to concrete
+feedback practice.

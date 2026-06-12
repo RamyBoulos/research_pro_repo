@@ -1,0 +1,71 @@
+\section{Background}
+
+\subsection{Feedback Quality in Medical Education}
+Effective feedback in clinical education should be specific, behavior-oriented,
+objective, and actionable. It should identify both strengths and areas for
+improvement while avoiding vague praise or personal judgment. In OSCE examiner
+training, these requirements are especially important because examiners must
+provide concise, educationally useful feedback based on observed student
+performance.
+
+The distinction between feedback, encouragement, and evaluation is important for
+this project. Encouragement may support motivation, but it often lacks
+information value. Evaluation can summarize performance, but may remain too
+summative to guide improvement. Formative feedback should instead describe a
+performance gap and help the learner close it. In an OSCE setting, this means
+that useful examiner feedback should name what the student did, connect the
+comment to the station context, use descriptive rather than personal language,
+and provide a concrete strategy for the next attempt.
+
+These requirements become harder under the practical constraint of a two-minute
+feedback window. The examiner must select the most relevant points, formulate a
+strength, identify an improvement area, and give an actionable next step without
+becoming either too vague or too lengthy. This makes feedback delivery a
+trainable performance skill in its own right. A scalable training tool should
+therefore allow examiners to rehearse feedback repeatedly and receive immediate,
+criterion-based guidance.
+
+This educational view motivates the six-criterion rubric used in Examiner
+Coach. The rubric does not attempt to model all aspects of clinical competence.
+It models the quality of the examiner's feedback utterance as a training object.
+This separation is essential because the same student performance could receive
+feedback of very different quality depending on the examiner's wording.
+
+\subsection{Retrieval-Augmented Generation and Modular RAG}
+Retrieval-augmented generation combines large language models with external
+knowledge retrieval. Instead of relying only on model-internal knowledge, a RAG
+system retrieves relevant evidence and provides it as context for generation.
+The Modular RAG framework describes RAG systems as configurable combinations of
+modules such as indexing, pre-retrieval, retrieval, post-retrieval, generation,
+and orchestration \cite{gao2024modularrag}. Examiner Coach follows this idea by
+separating its knowledge preparation, transcript processing, retrieval, scoring,
+and coaching components.
+
+The Modular RAG perspective is useful because Examiner Coach is not simply a
+single prompt around a transcript. It is a pipeline with several points at which
+behavior can be changed and evaluated independently: documents can be chunked
+differently, retrieval can use direct transcript queries or HyDE-style
+hypothetical-passage retrieval, retrieved chunks can be filtered or reranked, and generation can be
+constrained by a structured JSON contract. This modularity improves
+inspectability. When an evaluation seems poorly calibrated, the system can be
+debugged at the level of retrieval evidence, prompt construction, parsing, or
+rubric design rather than being treated as an opaque LLM response.
+
+\subsection{KISSKI Context for Sensitive Health Applications}
+The project also fits into the broader direction of KISSKI, the AI service
+centre for sensitive and critical infrastructures. KISSKI's central goal is to
+research AI methods and provide them through a highly available AI service
+centre for sensitive infrastructures, with a particular focus on socially
+relevant fields such as health and energy \cite{kisski2026mission}. Examiner
+Coach takes a step in this direction by applying institutionally provided AI
+services to a concrete health-education use case: OSCE examiner feedback
+training. The project is not only a consumer of an LLM endpoint; it explores how
+such services can be integrated into a structured, privacy-conscious workflow
+for medical education.
+
+The modular perspective also supports the privacy-oriented requirements of the
+project. Instead of sending examiner input to a general commercial chatbot, the
+system is configured around institutional KISSKI/SAIA services and a local
+knowledge base. This does not remove all privacy concerns, but it makes the data
+flow more explicit and gives the project a clearer path toward institutional
+review.

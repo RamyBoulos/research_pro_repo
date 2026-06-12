@@ -259,10 +259,10 @@ async def coach_examiner(request: CoachingRequest) -> ResolvedCoachingResponse:
     )
 
     config = RetrievalConfig(
-        retrieval_mode="direct",
-        candidate_pool_size=12,
-        final_k=4,
-        hyde_max_tokens=200,
+        retrieval_mode="hyde",
+        candidate_pool_size=20,
+        final_k=8,
+        hyde_max_tokens=300,
         normalize_to_english=True,
         criterion_aware_query=True,
         enable_quality_reranking=True,

@@ -104,6 +104,33 @@ Frontend coaching question
 The backend keeps canonical evaluation and coaching content bilingual where
 needed, then resolves the requested display language for the frontend.
 
+## Current RAG Defaults
+
+The production RAG configuration follows the strongest variant observed in the
+debug comparison and LLM-as-a-judge workflow: `hyde_k8`.
+
+Current evaluation and coaching retrieval defaults:
+
+```text
+retrieval_mode: hyde
+candidate_pool_size: 20
+final_k: 8
+hyde_max_tokens: 300
+normalize_to_english: true
+criterion_aware_query: true
+enable_quality_reranking: true
+```
+
+In HyDE mode, the candidate pool is split between direct transcript-based
+retrieval and retrieval from a generated hypothetical guidance passage. With
+`candidate_pool_size=20`, this means 10 direct candidates and 10 HyDE
+candidates are retrieved, deduplicated, reranked, filtered, and reduced to the
+final 8 evidence chunks.
+
+Transcription does not use RAG. It uses the configured voice model
+(`whisper-large-v2`) and passes the transcript into the later evaluation or
+coaching pipeline.
+
 ## Repository Layout
 
 ```text
@@ -332,6 +359,12 @@ make compare-rag-core
 
 This compares no-RAG, direct RAG, unfiltered direct RAG, HyDE, and unfiltered
 HyDE variants.
+
+The comparison outputs used during development indicated that `hyde_k8` was the
+best overall production candidate. In the illustrative comparison notebook, it
+had the lowest average distance to the gold score band and the highest number of
+in-band cases among the core variants. The LLM-as-a-judge validation supported
+the same overall direction, so the runtime RAG defaults now use `hyde_k8`.
 
 Run the broader comparison set:
 

@@ -1,0 +1,242 @@
+<svg width="100%" viewBox="0 0 680 920" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Examiner Coach implementation flow</title>
+<desc>Three-lane flowchart: offline knowledge-base preparation, runtime evaluation pipeline, and optional coaching pipeline.</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <style>
+    text { font-family: sans-serif; fill: #1a1a1a; }
+    .th  { font-size: 13px; font-weight: 600; }
+    .ts  { font-size: 11px; font-weight: 400; fill: #444; }
+    .arr { stroke: #555; stroke-width: 1.2; fill: none; }
+    .lane-bg { fill: none; stroke: #bbb; stroke-width: 0.8; stroke-dasharray: 5 3; }
+    .node-teal   { fill: #e1f5ee; stroke: #0f6e56; stroke-width: 0.8; }
+    .node-blue   { fill: #e6f1fb; stroke: #185fa5; stroke-width: 0.8; }
+    .node-coral  { fill: #faece7; stroke: #993c1d; stroke-width: 0.8; }
+    .node-purple { fill: #eeedfe; stroke: #534ab7; stroke-width: 0.8; }
+    .node-ext    { fill: #f6f6f4; stroke: #888; stroke-width: 1; stroke-dasharray: 4 2; }
+    .node-note   { fill: none; stroke: #bbb; stroke-width: 0.8; stroke-dasharray: 3 2; }
+    .text-teal   { fill: #085041; }
+    .text-blue   { fill: #0c447c; }
+    .text-coral  { fill: #712b13; }
+    .text-purple { fill: #3c3489; }
+    .text-ext    { fill: #333; }
+    .text-note   { fill: #555; }
+    .lbl         { font-size: 11px; font-weight: 700; fill: #444; }
+    .legend-txt  { font-size: 10.5px; fill: #555; }
+  </style>
+</defs>
+
+<!-- ══════════════════════════════════════
+     LANE 1: Offline knowledge-base
+     ══════════════════════════════════════ -->
+<rect x="8" y="8" width="664" height="168" rx="10" class="lane-bg"/>
+<text class="lbl" x="20" y="24">Offline knowledge-base preparation</text>
+
+<!-- N1 Source docs -->
+<rect x="16" y="34" width="96" height="50" rx="6" class="node-teal"/>
+<text class="th text-teal" x="64" y="54" text-anchor="middle" dominant-baseline="central">Educational</text>
+<text class="ts text-teal" x="64" y="70" text-anchor="middle" dominant-baseline="central">source docs</text>
+
+<!-- N2 KISSKI parse -->
+<rect x="128" y="34" width="96" height="50" rx="6" class="node-ext"/>
+<text class="th text-ext" x="176" y="52" text-anchor="middle" dominant-baseline="central">KISSKI</text>
+<text class="ts text-ext" x="176" y="67" text-anchor="middle" dominant-baseline="central">doc parsing</text>
+
+<!-- N3 Chunk -->
+<rect x="240" y="34" width="96" height="50" rx="6" class="node-teal"/>
+<text class="th text-teal" x="288" y="52" text-anchor="middle" dominant-baseline="central">Clean &amp; split</text>
+<text class="ts text-teal" x="288" y="67" text-anchor="middle" dominant-baseline="central">semantic chunks</text>
+
+<!-- N4 Metadata -->
+<rect x="352" y="34" width="96" height="50" rx="6" class="node-teal"/>
+<text class="th text-teal" x="400" y="52" text-anchor="middle" dominant-baseline="central">Attach</text>
+<text class="ts text-teal" x="400" y="67" text-anchor="middle" dominant-baseline="central">metadata</text>
+
+<!-- N5 Embed API -->
+<rect x="464" y="34" width="96" height="50" rx="6" class="node-ext"/>
+<text class="th text-ext" x="512" y="47" text-anchor="middle" dominant-baseline="central">Embedding API</text>
+<text class="ts text-ext" x="512" y="61" text-anchor="middle" dominant-baseline="central">multilingual-e5</text>
+<text class="ts text-ext" x="512" y="75" text-anchor="middle" dominant-baseline="central">-large-instruct</text>
+
+<!-- N6 ChromaDB -->
+<rect x="576" y="34" width="96" height="50" rx="6" class="node-purple"/>
+<text class="th text-purple" x="624" y="52" text-anchor="middle" dominant-baseline="central">ChromaDB</text>
+<text class="ts text-purple" x="624" y="67" text-anchor="middle" dominant-baseline="central">vector store</text>
+
+<!-- Lane 1 arrows -->
+<line x1="112" y1="59" x2="126" y2="59" class="arr" marker-end="url(#arrow)"/>
+<line x1="224" y1="59" x2="238" y2="59" class="arr" marker-end="url(#arrow)"/>
+<line x1="336" y1="59" x2="350" y2="59" class="arr" marker-end="url(#arrow)"/>
+<line x1="448" y1="59" x2="462" y2="59" class="arr" marker-end="url(#arrow)"/>
+<line x1="560" y1="59" x2="574" y2="59" class="arr" marker-end="url(#arrow)"/>
+
+<!-- ══════════════════════════════════════
+     LANE 2: Runtime evaluation pipeline
+     ══════════════════════════════════════ -->
+<rect x="8" y="188" width="664" height="440" rx="10" class="lane-bg"/>
+<text class="lbl" x="20" y="204">Runtime evaluation pipeline</text>
+
+<!-- Row A: transcription -->
+<rect x="16" y="214" width="96" height="50" rx="6" class="node-blue"/>
+<text class="th text-blue" x="64" y="232" text-anchor="middle" dominant-baseline="central">Examiner</text>
+<text class="ts text-blue" x="64" y="247" text-anchor="middle" dominant-baseline="central">OSCE feedback</text>
+
+<rect x="128" y="214" width="96" height="50" rx="6" class="node-ext"/>
+<text class="th text-ext" x="176" y="232" text-anchor="middle" dominant-baseline="central">Whisper</text>
+<text class="ts text-ext" x="176" y="247" text-anchor="middle" dominant-baseline="central">whisper-large-v2</text>
+
+<rect x="240" y="214" width="96" height="50" rx="6" class="node-blue"/>
+<text class="th text-blue" x="288" y="232" text-anchor="middle" dominant-baseline="central">Transcript</text>
+<text class="ts text-blue" x="288" y="247" text-anchor="middle" dominant-baseline="central">+ audio duration</text>
+
+<!-- Decision diamond -->
+<polygon points="374,239 400,214 426,239 400,264" fill="#f0f0ee" stroke="#888" stroke-width="1"/>
+<text class="ts" x="400" y="236" text-anchor="middle" dominant-baseline="central" style="fill:#333">Normalize</text>
+<text class="ts" x="400" y="249" text-anchor="middle" dominant-baseline="central" style="fill:#333">to English?</text>
+
+<rect x="464" y="214" width="96" height="50" rx="6" class="node-ext"/>
+<text class="th text-ext" x="512" y="232" text-anchor="middle" dominant-baseline="central">LLM</text>
+<text class="ts text-ext" x="512" y="247" text-anchor="middle" dominant-baseline="central">translation</text>
+
+<rect x="576" y="214" width="96" height="50" rx="6" class="node-blue"/>
+<text class="th text-blue" x="624" y="232" text-anchor="middle" dominant-baseline="central">Retrieval</text>
+<text class="ts text-blue" x="624" y="247" text-anchor="middle" dominant-baseline="central">query</text>
+
+<!-- Row A arrows -->
+<line x1="112" y1="239" x2="126" y2="239" class="arr" marker-end="url(#arrow)"/>
+<line x1="224" y1="239" x2="238" y2="239" class="arr" marker-end="url(#arrow)"/>
+<line x1="336" y1="239" x2="372" y2="239" class="arr" marker-end="url(#arrow)"/>
+<line x1="426" y1="239" x2="462" y2="239" class="arr" marker-end="url(#arrow)"/>
+<text class="ts" x="444" y="234" text-anchor="middle" style="fill:#555">yes</text>
+<line x1="560" y1="239" x2="574" y2="239" class="arr" marker-end="url(#arrow)"/>
+<!-- no path -->
+<path d="M400 264 L400 290 L624 290 L624 264" fill="none" stroke="#888" stroke-width="1.1" marker-end="url(#arrow)"/>
+<text class="ts" x="510" y="303" text-anchor="middle" style="fill:#555">no</text>
+
+<!-- Row B: retrieval -->
+<rect x="16" y="316" width="96" height="60" rx="6" class="node-ext"/>
+<text class="th text-ext" x="64" y="334" text-anchor="middle" dominant-baseline="central">HyDE gen</text>
+<text class="ts text-ext" x="64" y="350" text-anchor="middle" dominant-baseline="central">hypothetical</text>
+<text class="ts text-ext" x="64" y="364" text-anchor="middle" dominant-baseline="central">passage</text>
+
+<rect x="128" y="316" width="96" height="28" rx="6" class="node-blue"/>
+<text class="th text-blue" x="176" y="330" text-anchor="middle" dominant-baseline="central">Direct retrieval</text>
+
+<rect x="128" y="350" width="96" height="28" rx="6" class="node-blue"/>
+<text class="th text-blue" x="176" y="364" text-anchor="middle" dominant-baseline="central">HyDE retrieval</text>
+
+<rect x="240" y="325" width="96" height="50" rx="6" class="node-note"/>
+<text class="ts text-note" x="288" y="342" text-anchor="middle" dominant-baseline="central">Both query</text>
+<text class="ts text-note" x="288" y="358" text-anchor="middle" dominant-baseline="central">ChromaDB</text>
+
+<rect x="352" y="325" width="96" height="50" rx="6" class="node-blue"/>
+<text class="th text-blue" x="400" y="343" text-anchor="middle" dominant-baseline="central">Merge &amp;</text>
+<text class="ts text-blue" x="400" y="359" text-anchor="middle" dominant-baseline="central">deduplicate</text>
+
+<rect x="464" y="325" width="96" height="50" rx="6" class="node-blue"/>
+<text class="th text-blue" x="512" y="343" text-anchor="middle" dominant-baseline="central">Rerank &amp;</text>
+<text class="ts text-blue" x="512" y="359" text-anchor="middle" dominant-baseline="central">filter</text>
+
+<rect x="576" y="325" width="96" height="50" rx="6" class="node-purple"/>
+<text class="th text-purple" x="624" y="343" text-anchor="middle" dominant-baseline="central">Final context</text>
+<text class="ts text-purple" x="624" y="359" text-anchor="middle" dominant-baseline="central">final_k = 8</text>
+
+<!-- Row B arrows -->
+<path d="M624 264 L624 308 L176 308 L176 314" fill="none" stroke="#888" stroke-width="1" marker-end="url(#arrow)"/>
+<path d="M576 245 L20 245 L20 314" fill="none" stroke="#888" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arrow)"/>
+<line x1="112" y1="364" x2="126" y2="364" class="arr" marker-end="url(#arrow)"/>
+<line x1="224" y1="330" x2="238" y2="340" class="arr" marker-end="url(#arrow)"/>
+<line x1="224" y1="364" x2="238" y2="357" class="arr" marker-end="url(#arrow)"/>
+<line x1="336" y1="350" x2="350" y2="350" class="arr" marker-end="url(#arrow)"/>
+<line x1="448" y1="350" x2="462" y2="350" class="arr" marker-end="url(#arrow)"/>
+<line x1="560" y1="350" x2="574" y2="350" class="arr" marker-end="url(#arrow)"/>
+
+<!-- Row C: generation -->
+<rect x="576" y="406" width="96" height="60" rx="6" class="node-blue"/>
+<text class="th text-blue" x="624" y="424" text-anchor="middle" dominant-baseline="central">Eval prompt</text>
+<text class="ts text-blue" x="624" y="440" text-anchor="middle" dominant-baseline="central">transcript +</text>
+<text class="ts text-blue" x="624" y="454" text-anchor="middle" dominant-baseline="central">6-criterion rubric</text>
+
+<rect x="464" y="406" width="96" height="60" rx="6" class="node-ext"/>
+<text class="th text-ext" x="512" y="424" text-anchor="middle" dominant-baseline="central">LLaMA 3.1-8b</text>
+<text class="ts text-ext" x="512" y="440" text-anchor="middle" dominant-baseline="central">-instruct</text>
+<text class="ts text-ext" x="512" y="454" text-anchor="middle" dominant-baseline="central">via KISSKI</text>
+
+<rect x="352" y="406" width="96" height="60" rx="6" class="node-blue"/>
+<text class="th text-blue" x="400" y="424" text-anchor="middle" dominant-baseline="central">Parse &amp;</text>
+<text class="ts text-blue" x="400" y="440" text-anchor="middle" dominant-baseline="central">validate JSON</text>
+
+<rect x="240" y="406" width="96" height="60" rx="6" class="node-blue"/>
+<text class="th text-blue" x="288" y="424" text-anchor="middle" dominant-baseline="central">Bilingual</text>
+<text class="ts text-blue" x="288" y="440" text-anchor="middle" dominant-baseline="central">eval result</text>
+
+<rect x="128" y="406" width="96" height="60" rx="6" class="node-blue"/>
+<text class="th text-blue" x="176" y="424" text-anchor="middle" dominant-baseline="central">Resolve</text>
+<text class="ts text-blue" x="176" y="440" text-anchor="middle" dominant-baseline="central">display lang</text>
+
+<!-- Row C arrows -->
+<line x1="624" y1="375" x2="624" y2="404" class="arr" marker-end="url(#arrow)"/>
+<line x1="576" y1="436" x2="560" y2="436" class="arr" marker-end="url(#arrow)"/>
+<line x1="464" y1="436" x2="448" y2="436" class="arr" marker-end="url(#arrow)"/>
+<line x1="352" y1="436" x2="336" y2="436" class="arr" marker-end="url(#arrow)"/>
+<line x1="240" y1="436" x2="224" y2="436" class="arr" marker-end="url(#arrow)"/>
+
+<!-- ══════════════════════════════════════
+     LANE 3: Optional coaching pipeline
+     ══════════════════════════════════════ -->
+<rect x="8" y="644" width="664" height="264" rx="10" class="lane-bg"/>
+<text class="lbl" x="20" y="660">Optional coaching pipeline</text>
+
+<rect x="16" y="670" width="96" height="50" rx="6" class="node-coral"/>
+<text class="th text-coral" x="64" y="688" text-anchor="middle" dominant-baseline="central">Follow-up</text>
+<text class="ts text-coral" x="64" y="703" text-anchor="middle" dominant-baseline="central">question</text>
+
+<polygon points="168,695 196,670 224,695 196,720" fill="#f0f0ee" stroke="#888" stroke-width="1"/>
+<text class="ts" x="196" y="693" text-anchor="middle" dominant-baseline="central" style="fill:#333">Coaching</text>
+<text class="ts" x="196" y="706" text-anchor="middle" dominant-baseline="central" style="fill:#333">intent?</text>
+
+<rect x="240" y="670" width="96" height="50" rx="6" class="node-coral"/>
+<text class="th text-coral" x="288" y="688" text-anchor="middle" dominant-baseline="central">Retrieve</text>
+<text class="ts text-coral" x="288" y="703" text-anchor="middle" dominant-baseline="central">evidence if needed</text>
+
+<rect x="352" y="670" width="96" height="50" rx="6" class="node-note"/>
+<text class="ts text-note" x="400" y="688" text-anchor="middle" dominant-baseline="central">Reuse transcript</text>
+<text class="ts text-note" x="400" y="703" text-anchor="middle" dominant-baseline="central">+ result (+ evidence)</text>
+
+<rect x="464" y="670" width="96" height="50" rx="6" class="node-coral"/>
+<text class="th text-coral" x="512" y="688" text-anchor="middle" dominant-baseline="central">Coaching</text>
+<text class="ts text-coral" x="512" y="703" text-anchor="middle" dominant-baseline="central">prompt</text>
+
+<rect x="576" y="670" width="96" height="50" rx="6" class="node-ext"/>
+<text class="th text-ext" x="624" y="688" text-anchor="middle" dominant-baseline="central">KISSKI chat</text>
+<text class="ts text-ext" x="624" y="703" text-anchor="middle" dominant-baseline="central">temp 0.2</text>
+
+<rect x="576" y="780" width="96" height="60" rx="6" class="node-coral"/>
+<text class="th text-coral" x="624" y="798" text-anchor="middle" dominant-baseline="central">Parse JSON</text>
+<text class="ts text-coral" x="624" y="814" text-anchor="middle" dominant-baseline="central">answer, citations,</text>
+<text class="ts text-coral" x="624" y="828" text-anchor="middle" dominant-baseline="central">session summary</text>
+
+<!-- Lane 3 arrows -->
+<line x1="112" y1="695" x2="166" y2="695" class="arr" marker-end="url(#arrow)"/>
+<line x1="226" y1="695" x2="238" y2="695" class="arr" marker-end="url(#arrow)"/>
+<line x1="336" y1="695" x2="350" y2="695" class="arr" marker-end="url(#arrow)"/>
+<line x1="448" y1="695" x2="462" y2="695" class="arr" marker-end="url(#arrow)"/>
+<line x1="560" y1="695" x2="574" y2="695" class="arr" marker-end="url(#arrow)"/>
+<line x1="624" y1="720" x2="624" y2="778" class="arr" marker-end="url(#arrow)"/>
+
+<!-- ══════════════════════════════════════
+     LEGEND
+     ══════════════════════════════════════ -->
+<rect x="16" y="856" width="14" height="10" rx="2" class="node-teal"/>
+<text class="legend-txt" x="36" y="865">Teal = offline prep</text>
+<rect x="130" y="856" width="14" height="10" rx="2" class="node-blue"/>
+<text class="legend-txt" x="150" y="865">Blue = runtime</text>
+<rect x="240" y="856" width="14" height="10" rx="2" class="node-coral"/>
+<text class="legend-txt" x="260" y="865">Coral = coaching</text>
+<rect x="350" y="856" width="14" height="10" rx="2" class="node-purple"/>
+<text class="legend-txt" x="370" y="865">Purple = storage/output</text>
+<rect x="490" y="856" width="14" height="10" rx="2" class="node-ext"/>
+<text class="legend-txt" x="510" y="865">Dashed = external service</text>
+</svg>

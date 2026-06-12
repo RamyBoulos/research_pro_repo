@@ -1,0 +1,50 @@
+\section{Feedback Quality Model}
+
+\subsection{Six-Criterion Rubric}
+Examiner Coach evaluates feedback using six criteria:
+\begin{enumerate}
+    \item specific observed behavior named;
+    \item contextual feedback;
+    \item objective and non-evaluative tone;
+    \item explicitly mentioned strength;
+    \item changeable area for improvement;
+    \item concrete improvement plan or next step.
+\end{enumerate}
+
+These criteria were selected to represent feedback as an educationally useful
+communication act. The first criterion asks whether the examiner names a
+specific observed behavior, because learners can only improve reliably when they
+know which action is being discussed. The second criterion checks whether the
+comment is connected to the current OSCE station rather than being a generic
+statement that could apply to any student. The third criterion addresses tone:
+the system rewards descriptive, behavior-focused wording and penalizes
+unsupported personal judgment.
+
+The fourth and fifth criteria ensure that the feedback is balanced but not
+superficial. A strength should be explicitly named, and an improvement area
+should describe a changeable behavior rather than a fixed personal trait. The
+sixth criterion captures actionability. It is not enough to tell a student that
+something was missing; high-quality feedback should include a concrete next
+step, such as a structure to follow, a phrase to use, or a specific clinical
+sequence to practice.
+
+\subsection{Scoring and Bilingual Output}
+Each criterion is scored from 0 to 100 using predefined scoring anchors. The
+system computes an overall score as the average of the six criterion scores and
+counts criteria as met when they meet or exceed the default threshold
+(\(\geq 70\)). Evaluation and coaching results can be resolved into German or
+English without regenerating the whole evaluation.
+
+The scoring model is intentionally simple. It does not claim to measure feedback
+quality as an objective natural quantity; instead, it operationalizes feedback
+quality for formative training. A score below 70 signals that a criterion is
+absent or only weakly expressed, while a score of 70 or above indicates that the
+criterion is present at a usable level. This makes the result easy to interpret
+and allows the coaching component to focus on the weakest criteria.
+
+Bilingual output is relevant because OSCE examiner training at TU Dresden may
+involve German-language feedback while the technical and educational literature
+is often available in English as in our case. The backend keeps evaluation content in
+a structured form and resolves labels, summaries, and suggestions into the
+requested language. This avoids regenerating the whole evaluation solely to
+switch the display language.

@@ -1,0 +1,191 @@
+\section{Prototype Evaluation}
+
+\subsection{RAG Variant Comparison}
+Prototype evaluation was performed using benchmark feedback cases and several
+retrieval configurations:
+\begin{itemize}
+    \item \texttt{no\_rag};
+    \item \texttt{direct\_k8};
+    \item \texttt{direct\_k8\_unfiltered};
+    \item \texttt{hyde\_k8};
+    \item \texttt{hyde\_k8\_unfiltered}.
+\end{itemize}
+
+The outputs from \texttt{notebooks/rag\_debug\_demo.ipynb} illustrate how
+retrieval affects score calibration and feedback interpretation.
+
+The comparison is designed to answer a practical calibration question: does
+retrieval help the system place feedback examples closer to expected quality
+bands? The no-RAG variant provides a prompt-only baseline. Direct retrieval
+tests whether evidence from the knowledge base improves evaluation when the
+retrieval query is based directly on the transcript and the feedback-quality
+criteria. HyDE retrieval adds one additional step: the LLM first generates a
+short hypothetical guidance passage that resembles the kind of educational
+evidence that would be useful for judging the transcript. This generated passage
+is then embedded and used to retrieve knowledge-base chunks. In other words,
+direct retrieval searches with the evaluation query itself, whereas HyDE
+retrieval searches with a generated document-like representation of the
+evidence that the system hopes to find.
+
+The comparison also separates filtered and unfiltered retrieval. In the
+unfiltered variants, criterion-aware query construction and quality reranking
+are disabled, so retrieval remains closer to the raw transcript-based vector
+similarity ranking:
+
+\begin{center}
+\texttt{query -> retrieve candidates -> sort by relevance -> take final\_k chunks}
+\end{center}
+
+The filtered variants add two refinements: the retrieval query is expanded with
+the feedback-quality criteria, and post-retrieval quality control is applied
+before the final context is selected:
+
+\begin{center}
+\texttt{query -> retrieve candidates -> quality reranking -> remove low-value chunks -> take final\_k chunks}
+\end{center}
+
+This distinction is important because vector similarity alone can retrieve
+chunks that are semantically related but not educationally useful, such as
+generic introductions, conclusions, reference sections, or noisy document
+fragments. The criterion-aware query pushes retrieval toward guidance about the
+six rubric dimensions, while quality reranking gives higher priority to chunks
+that mention specific observed behavior, objective wording, changeable
+improvement areas, and concrete next steps. The unfiltered variants therefore
+answer the question of how far raw retrieval can go, while the filtered variants
+test whether task-specific query construction and evidence-selection logic
+improve calibration.
+
+The benchmark cases are grouped by expected quality bands such as weak,
+mediocre, strong, and edge cases. This grouping is useful because a model may
+perform well on obviously strong feedback while still struggling with borderline
+or moderately useful feedback. For formative examiner training, those middle and
+edge cases are especially important because they resemble realistic feedback
+that is partially useful but still improvable.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{L{0.25\linewidth}L{0.20\linewidth}L{0.15\linewidth}L{0.28\linewidth}}
+        \toprule
+        Variant & Avg. distance to gold band & Within band & Interpretation \\
+        \midrule
+        \texttt{hyde\_k8} & 2.19 & 10/16 & Best overall alignment \\
+        \texttt{hyde\_k8\_unfiltered} & 2.31 & 9/16 & Very close to filtered HyDE \\
+        \texttt{direct\_k8} & 2.56 & 8/16 & Useful, but weaker than HyDE \\
+        \texttt{direct\_k8\_unfiltered} & 3.00 & 6/16 & Lower calibration \\
+        \texttt{no\_rag} & 3.31 & 7/16 & Prompt-only baseline \\
+        \bottomrule
+    \end{tabular}
+    \caption{Illustrative RAG comparison from the debug notebook. Lower
+    distance to the gold band is better.}
+    \label{tab:rag-variant-comparison}
+\end{table}
+
+\subsection{LLM-as-a-Judge Validation}
+In addition to the deterministic distance-to-gold-band comparison, an
+LLM-as-a-judge step was used as a secondary calibration check. The judge read
+the already generated evaluation outputs from the RAG comparison and compared
+them with the benchmark expectations. In the debug notebook, this produced 80
+completed judgments, corresponding to 16 benchmark cases evaluated under five
+variants.
+
+The judge was not treated as ground truth. Instead, it acted as a structured
+second lens beside the numeric band-distance calculation. This is important
+because an overall score can be numerically close to the target band while the
+reasoning remains educationally weak, or a criterion score can appear plausible
+while the explanation does not match the intended benchmark expectation. The
+judge therefore assessed four complementary dimensions:
+\begin{itemize}
+    \item \textbf{Overall band fit}: whether the final feedback-quality score
+    places the examiner's feedback in the expected benchmark category, such as
+    weak, mediocre, strong, or edge-case feedback. This checks the global
+    calibration of the evaluation.
+    \item \textbf{Criterion band fit}: whether the six rubric criteria are
+    scored consistently with the benchmark expectation. For example, feedback
+    that contains no concrete next step should not receive a high score for the
+    improvement-plan criterion, even if its general tone is acceptable.
+    \item \textbf{Benchmark expectation match}: whether the generated summary,
+    reasoning, and suggestions explain the same strengths and weaknesses that
+    the benchmark case was designed to test. This checks whether the system
+    understood why a feedback example should be considered weak, partial, or
+    strong.
+    \item \textbf{Directional correctness}: whether the evaluation moves in the
+    correct formative direction. In this project, that means avoiding inflated
+    scores for vague feedback, avoiding excessive penalties for clearly
+    structured feedback, and preserving the intended order between weak,
+    mediocre, strong, and ambiguous examples.
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \scriptsize
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{L{0.22\linewidth}L{0.12\linewidth}L{0.13\linewidth}L{0.13\linewidth}L{0.15\linewidth}L{0.14\linewidth}}
+        \toprule
+        Variant & Mean judge score & Overall band fit & Criterion band fit & Benchmark match & Directional correctness \\
+        \midrule
+        \texttt{hyde\_k8} & 62.97 & 71.25 & 52.50 & 51.56 & 76.56 \\
+        \texttt{hyde\_k8\_unfiltered} & 62.61 & 67.19 & 55.88 & 54.88 & 72.50 \\
+        \texttt{direct\_k8} & 55.88 & 67.50 & 46.94 & 42.50 & 66.56 \\
+        \texttt{direct\_k8\_unfiltered} & 54.61 & 53.12 & 49.81 & 49.88 & 65.62 \\
+        \texttt{no\_rag} & 52.70 & 54.38 & 48.31 & 47.19 & 60.94 \\
+        \bottomrule
+    \end{tabular}
+    \caption{LLM-as-a-judge summary from the debug notebook. Scores are
+    reported on a 0--100 scale; higher values indicate stronger agreement with
+    the benchmark expectation.}
+    \label{tab:llm-judge-comparison}
+\end{table}
+
+The judge results support the same overall direction as the deterministic
+comparison in Table~\ref{tab:rag-variant-comparison}. The strongest mean judge
+score belongs to the filtered HyDE variant, with the unfiltered HyDE variant
+following very closely. This indicates that the advantage of HyDE is not only
+visible in the numeric distance to the gold band, but also in the judged quality
+of the generated evaluation. The filtered HyDE variant achieved the highest
+overall band fit and directional correctness, suggesting that it was best at
+placing examples in the right broad quality region and preserving the expected
+weak/mediocre/strong/edge direction.
+
+The unfiltered HyDE variant was very close and performed slightly better on
+criterion band fit and benchmark expectation match. This suggests that raw HyDE
+retrieval may sometimes preserve criterion-level details that are useful for
+the judge. However, the filtered \texttt{hyde\_k8} variant remained stronger as
+an operational default because it gave the best balance between overall
+calibration, directional correctness, and robustness against low-value context.
+
+\subsection{Interpretation of Results}
+Taken together, the deterministic and judge-based results show a consistent
+pattern. Retrieval improves the evaluation when it provides evidence that is
+well aligned with the feedback-quality rubric, and HyDE appears to improve this
+alignment more reliably than direct retrieval alone. The selected
+\texttt{hyde\_k8} configuration achieved the lowest average distance to the
+gold band, the highest number of in-band cases, the highest mean judge score,
+and the strongest directional correctness. This made it the most convincing
+default configuration for the current prototype.
+
+The comparison also shows that the no-RAG baseline is not useless. A carefully
+designed rubric prompt already gives the LLM meaningful structure, and this is
+why the prompt-only baseline can still produce reasonable evaluations in some
+cases. The added value of RAG is therefore not that it creates the rubric from
+nothing, but that it improves grounding and calibration by placing the
+transcript beside relevant educational evidence.
+
+The difference between filtered and unfiltered retrieval should be interpreted
+carefully. Filtering and quality reranking help remove generic or noisy chunks
+and prioritize evidence about behavior-specific, objective, and actionable
+feedback. At the same time, the close performance of
+\texttt{hyde\_k8\_unfiltered} shows that the generated HyDE passage itself
+already retrieves useful evidence. This means that both components matter: HyDE
+improves the semantic match between the evaluation task and the knowledge base,
+while filtering tries to make the final context more reliable.
+
+The most difficult category remains moderately useful feedback. Strong examples
+are easier to recognize because they satisfy most criteria, and weak examples
+are easier because many criteria are absent. Mediocre feedback often contains a
+mixture of useful and missing elements, making calibration more sensitive to
+retrieved evidence, scoring anchors, and prompt wording. This observation is
+important for future validation because real examiner feedback is likely to fall
+frequently into this intermediate range. Future work should therefore repeat
+the comparison with a larger benchmark set and with the currently available
+KISSKI evaluation model to test whether the same ranking remains stable.
