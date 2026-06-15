@@ -315,7 +315,7 @@ It defines six feedback quality criteria:
 | Criterion ID | Meaning |
 | --- | --- |
 | `specific_behavior` | Names concrete observed behavior |
-| `timely_contextual` | Anchored to the current station/context |
+| `contextual` | Anchored to the current station/context |
 | `objective_tone` | Uses objective, non-judgmental wording |
 | `strength_mentioned` | Explicitly identifies a strength |
 | `improvement_area` | Identifies a changeable area for improvement |
