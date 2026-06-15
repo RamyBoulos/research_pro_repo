@@ -76,12 +76,27 @@ export default function CoachingPanel({ transcript, evaluation }: CoachingPanelP
     [language]
   );
 
+  const evaluationContextKey = useMemo(
+    () =>
+      JSON.stringify({
+        transcript,
+        duration_seconds: evaluation.duration_seconds,
+        overall_score: evaluation.overall_score,
+        criteria_met: evaluation.criteria_met,
+        criteria: evaluation.criteria.map((criterion) => [
+          criterion.criterion_id,
+          criterion.score_percent,
+        ]),
+      }),
+    [transcript, evaluation]
+  );
+
   useEffect(() => {
     setMessages([]);
     setInput("");
     setError(null);
     setSessionSummary(DEFAULT_SUMMARY[language]);
-  }, [language, evaluation.output_language]);
+  }, [evaluationContextKey]);
 
   const handlePrompt = async (message: string) => {
     if (isLoading) {
