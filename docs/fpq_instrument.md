@@ -47,7 +47,7 @@ High-scoring feedback clearly identifies one or more specific observed actions.
 Backend ID:
 
 ```text
-timely_contextual
+contextual
 ```
 
 This criterion checks whether the feedback is anchored in the current OSCE
